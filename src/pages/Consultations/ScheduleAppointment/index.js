@@ -1,3 +1,5 @@
+// src/pages/Consultations/ScheduleAppointment/index.js
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import HeaderComCadastro from '../../../components/Header_com_cadastro';
@@ -11,6 +13,7 @@ const specialityOptions = ["CLINICO_GERAL", "ANESTESIOLOGIA", "CARDIOLOGIA", "DE
 const ScheduleAppointment = () => {
     const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
+
     const [pets, setPets] = useState([]);
     const [allVets, setAllVets] = useState([]);
     const [filteredVets, setFilteredVets] = useState([]);
@@ -34,7 +37,6 @@ const ScheduleAppointment = () => {
         const fetchData = async () => {
             if (user?.id) {
                 try {
-                    setError('');
                     const [petsResponse, vetsResponse] = await Promise.all([
                         api.get('/pets/my-pets'),
                         api.get('/veterinary')
@@ -42,8 +44,7 @@ const ScheduleAppointment = () => {
                     setPets(petsResponse.data || []);
                     setAllVets(vetsResponse.data || []);
                 } catch (error) {
-                    console.error("Erro ao buscar dados para agendamento:", error);
-                    setError("Não foi possível carregar os dados necessários para o agendamento.");
+                    setError("Não foi possível carregar os dados necessários.");
                 } finally {
                     setLoading(false);
                 }
@@ -56,17 +57,16 @@ const ScheduleAppointment = () => {
 
     const fetchAvailableTimes = useCallback(async () => {
         if (formData.veterinarioId && formData.consultationdate) {
-            setLoading(true);
             try {
                 const response = await api.get(`/veterinary/${formData.veterinarioId}/available-slots`, {
                     params: { date: formData.consultationdate }
                 });
-                setAvailableTimes(response.data || []);
+                // CORREÇÃO: Formata a hora para HH:mm, removendo os segundos
+                const formattedTimes = response.data.map(time => time.substring(0, 5));
+                setAvailableTimes(formattedTimes || []);
             } catch (error) {
                 console.error("Erro ao buscar horários", error);
                 setAvailableTimes([]);
-            } finally {
-                setLoading(false);
             }
         }
     }, [formData.veterinarioId, formData.consultationdate]);
@@ -87,7 +87,7 @@ const ScheduleAppointment = () => {
         }
         
         if (name === 'veterinarioId' || name === 'consultationdate') {
-            updatedFormData.consultationtime = ''; // Reseta a hora ao mudar o vet ou a data
+            updatedFormData.consultationtime = '';
         }
 
         setFormData(updatedFormData);
@@ -95,7 +95,6 @@ const ScheduleAppointment = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
         try {
             const requestData = {
                 petId: parseInt(formData.petId),
@@ -103,7 +102,7 @@ const ScheduleAppointment = () => {
                 usuarioId: user.id,
                 specialityEnum: formData.specialityEnum,
                 consultationdate: formData.consultationdate,
-                consultationtime: formData.consultationtime,
+                consultationtime: formData.consultationtime, // Já está no formato HH:mm
                 reason: formData.reason,
                 observations: formData.observations || 'Nenhuma observação.',
                 status: 'PENDENTE'
@@ -113,11 +112,8 @@ const ScheduleAppointment = () => {
             alert('Solicitação de consulta enviada com sucesso!');
             navigate('/consultas');
         } catch (error) {
-            const errorMsg = error.response?.data?.message || "Erro ao agendar consulta. Verifique os dados.";
+            const errorMsg = error.response?.data?.message || "Erro ao agendar consulta.";
             alert(errorMsg);
-            console.error(error.response?.data || error);
-        } finally {
-            setLoading(false);
         }
     };
     
@@ -135,7 +131,8 @@ const ScheduleAppointment = () => {
                 <div className="add-pet-container">
                     <form onSubmit={handleSubmit} className="pet-form">
                         {error && <p className="error-message">{error}</p>}
-                        {loading && <p>Carregando dados...</p>}
+                        {loading && <p style={{textAlign: 'center'}}>Carregando dados...</p>}
+                        
                         <div className="form-row">
                             <div className="form-group">
                                 <label htmlFor="petId">Selecione seu Pet</label>
@@ -156,7 +153,7 @@ const ScheduleAppointment = () => {
                             <div className="form-group">
                                 <label htmlFor="veterinarioId">Veterinário</label>
                                 <select id="veterinarioId" name="veterinarioId" value={formData.veterinarioId} onChange={handleChange} required disabled={!formData.specialityEnum}>
-                                    <option value="">{formData.specialityEnum ? 'Selecione um veterinário' : 'Selecione uma especialidade primeiro'}</option>
+                                    <option value="">{formData.specialityEnum ? 'Selecione um veterinário' : 'Selecione uma especialidade'}</option>
                                     {filteredVets.map(vet => <option key={vet.id} value={vet.id}>{vet.name}</option>)}
                                 </select>
                             </div>
@@ -168,7 +165,14 @@ const ScheduleAppointment = () => {
                             </div>
                             <div className="form-group">
                                 <label htmlFor="consultationtime">Hora</label>
-                                <select id="consultationtime" name="consultationtime" value={formData.consultationtime} onChange={handleChange} required disabled={!formData.veterinarioId || !formData.consultationdate}>
+                                <select 
+                                    id="consultationtime" 
+                                    name="consultationtime" 
+                                    value={formData.consultationtime} 
+                                    onChange={handleChange} 
+                                    required 
+                                    disabled={!formData.veterinarioId || !formData.consultationdate}
+                                >
                                     <option value="">Selecione um horário</option>
                                     {availableTimes.length > 0 ? (
                                         availableTimes.map(time => <option key={time} value={time}>{time}</option>)
@@ -180,10 +184,10 @@ const ScheduleAppointment = () => {
                         </div>
                          <div className="form-group">
                             <label htmlFor="reason">Motivo da Consulta (mín. 5 caracteres)</label>
-                            <textarea id="reason" name="reason" value={formData.reason} onChange={handleChange} rows="3" required></textarea>
+                            <textarea id="reason" name="reason" value={formData.reason} onChange={handleChange} rows="3" required minLength="5"></textarea>
                         </div>
                          <div className="form-group">
-                            <label htmlFor="observations">Observações Adicionais</label>
+                            <label htmlFor="observations">Observações Adicionais (opcional)</label>
                             <textarea id="observations" name="observations" value={formData.observations} onChange={handleChange} rows="3"></textarea>
                         </div>
                         <div className="form-actions">

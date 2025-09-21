@@ -23,7 +23,6 @@ const VetConsultasNav = ({ activeTab }) => {
         >
           Histórico
         </Link>
-        {/* O Calendário agora é apenas mais uma aba */}
         <Link 
           to="/vet/consultas?tab=calendario" 
           className={`status-button ${activeTab === 'calendario' ? 'active' : ''}`}

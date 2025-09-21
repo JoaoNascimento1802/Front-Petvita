@@ -18,7 +18,6 @@ import ModalRegisterVet from "../components/ModalRegisterVet";
 import AbaoutUs from "../pages/AboutUs";
 import App from "../pages/App";
 import Chat from "../pages/Chat/Chat";
-import Calendario from "../pages/Consultations/Calendario/Calendario"; 
 
 // Imports do Vet
 import VetDashboard from '../pages/Vet/Dashboard/Dashboard';
@@ -27,7 +26,6 @@ import VetRelatorios from '../pages/Vet/Relatorios/Relatorios';
 import VetDetalhesConsulta from '../pages/Vet/DetalhesConsulta/DetalhesConsulta';
 import VetPerfil from '../pages/Vet/Perfil/Perfil';
 import VetChat from '../pages/Vet/Chat/Chat';
-import VetCalendario from "../pages/Vet/Calendario/Calendario";
 
 // Imports do Admin
 import VetList from '../pages/admin/VetList/VetList';
@@ -59,14 +57,14 @@ export default function AppRoutes() {
       <Route path="/detalhes-consulta/:consultaId" element={<PrivateRoute requiredRole="USER"><ConsulDetails /></PrivateRoute>} />
       <Route path="/detalhes-consulta-concluida/:consultaId" element={<PrivateRoute requiredRole="USER"><ConsulCompleteDetails /></PrivateRoute>} />
       <Route path="/agendar-consulta" element={<PrivateRoute requiredRole="USER"><ScheduleAppointment /></PrivateRoute>} />
-      {/* A rota do calendário do cliente agora é uma aba dentro de /consultas, então a rota dedicada foi removida */}
- <Route path="/conversations" element={<PrivateRoute requiredRole="USER"><ConversationList /></PrivateRoute>} />
+      <Route path="/conversations" element={<PrivateRoute requiredRole="USER"><ConversationList /></PrivateRoute>} />
       <Route path="/chat/:consultationId" element={<PrivateRoute requiredRole="USER"><Chat /></PrivateRoute>} />
 
       {/* === Rotas do Veterinário (VETERINARY) === */}
       <Route path="/vet/dashboard" element={<PrivateRoute requiredRole="VETERINARY"><VetDashboard /></PrivateRoute>} />
       <Route path="/vet/consultas" element={<PrivateRoute requiredRole="VETERINARY"><VetConsultas /></PrivateRoute>} />
-      <Route path="/vet/calendario" element={<PrivateRoute requiredRole="VETERINARY"><VetCalendario /></PrivateRoute>} />
+      {/* A LINHA ABAIXO FOI REMOVIDA PARA INTEGRAR O CALENDÁRIO À PÁGINA DE CONSULTAS */}
+      {/* <Route path="/vet/calendario" element={<PrivateRoute requiredRole="VETERINARY"><VetCalendario /></PrivateRoute>} /> */}
       <Route path="/vet/relatorios" element={<PrivateRoute requiredRole="VETERINARY"><VetRelatorios /></PrivateRoute>} />
       <Route path="/vet/consultas/:consultaId" element={<PrivateRoute requiredRole="VETERINARY"><VetDetalhesConsulta /></PrivateRoute>} />
       <Route path="/vet/chat" element={<PrivateRoute requiredRole="VETERINARY"><VetChat /></PrivateRoute>} />

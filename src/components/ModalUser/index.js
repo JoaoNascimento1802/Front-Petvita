@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import './css/styles.css';
 import logo from '../../assets/images/Header/LogoPet_vita(Atualizado).png';
 
-const ModalUser = ({ onClose, switchToVet }) => {
+// Recebe a nova prop 'onSwitchToRegister'
+const ModalUser = ({ onClose, switchToVet, onSwitchToRegister }) => {
   const { login } = useAuth();
   const navigate = useNavigate();
   
@@ -22,19 +23,11 @@ const ModalUser = ({ onClose, switchToVet }) => {
       const loggedInUser = await login(email, password);
       onClose();
 
-      // Redireciona com base na 'role' do usuário
       switch(loggedInUser.role) {
-        case 'ADMIN':
-          navigate('/admin/dashboard');
-          break;
-        case 'VETERINARY':
-          navigate('/vet/dashboard');
-          break;
-        case 'USER':
-          navigate('/'); // Usuário comum vai para a Home logado
-          break;
-        default:
-          navigate('/');
+        case 'ADMIN': navigate('/admin/dashboard'); break;
+        case 'VETERINARY': navigate('/vet/dashboard'); break;
+        case 'USER': navigate('/'); break;
+        default: navigate('/');
       }
 
     } catch (err) {
@@ -46,7 +39,8 @@ const ModalUser = ({ onClose, switchToVet }) => {
   };
 
   return (
-    <div className="modal active" onClick={onClose}>
+    // ===== ALTERAÇÃO 1: onClick removido daqui =====
+    <div className="modal active">
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <span className="close" onClick={onClose}>&times;</span>
         <div className="button-group">
@@ -93,7 +87,10 @@ const ModalUser = ({ onClose, switchToVet }) => {
         </form>
         <div className="links">
           <button type="button" className="link-button" onClick={onClose}>Voltar</button>
-          <button type="button" className="link-button">Cadastrar-se</button>
+          {/* ===== ALTERAÇÃO 2: Botão "Cadastrar-se" agora funcional ===== */}
+          <button type="button" className="link-button" onClick={onSwitchToRegister}>
+            Cadastrar-se
+          </button>
         </div>
       </div>
     </div>
