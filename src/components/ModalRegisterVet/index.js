@@ -1,10 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 import './css/styles.css';
 import logo from '../../assets/images/Header/LogoPet_vita(Atualizado).png';
 
-const ModalRegisterVet = ({ onClose, switchToUser }) => {
+const specialityOptions = ["CLINICO_GERAL", "CARDIOLOGIA", "DERMATOLOGIA", "OFTALMOLOGIA", "ORTOPEDIA", "CIRURGIA_GERAL"];
+
+const ModalRegisterVet = ({ onClose, switchToUser, onSwitchToLogin }) => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    name: '', email: '', password: '', crmv: '', rg: '', specialityenum: '',
+    phone: '', imageurl: 'https://i.pravatar.cc/150'
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await api.post('/veterinary', formData);
+      await login(formData.email, formData.password);
+      onClose();
+      navigate('/vet/dashboard');
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 'Erro ao cadastrar. Verifique os dados.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="modal-register active" onClick={onClose}>
+    <div className="modal active">
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <span className="close" onClick={onClose}>&times;</span>
         <div className="button-group">
@@ -14,35 +51,28 @@ const ModalRegisterVet = ({ onClose, switchToUser }) => {
         <div className="logo-modal">
           <img src={logo} alt="Pet Vita Logo" />
         </div>
-        <form className="form">
+        <form className="form" onSubmit={handleRegister}>
+          {error && <p className="error-message">{error}</p>}
+          <div className="input-group"><label htmlFor="name">Nome Completo</label><input type="text" id="name" required onChange={handleChange} /></div>
+          <div className="input-group"><label htmlFor="email">Email</label><input type="email" id="email" required onChange={handleChange} /></div>
+          <div className="input-group"><label htmlFor="password">Senha</label><input type="password" id="password" required onChange={handleChange} /></div>
+          <div className="input-group"><label htmlFor="crmv">CRMV (Ex: SP 12345)</label><input type="text" id="crmv" required onChange={handleChange} /></div>
+          <div className="input-group"><label htmlFor="rg">RG</label><input type="text" id="rg" required onChange={handleChange} /></div>
+          <div className="input-group"><label htmlFor="phone">Telefone</label><input type="tel" id="phone" required onChange={handleChange} /></div>
           <div className="input-group">
-            <label htmlFor="nome">Nome</label>
-            <input type="text" id="nome" placeholder="Digite o seu nome" required />
+            <label htmlFor="specialityenum">Especialidade Principal</label>
+            <select id="specialityenum" name="specialityenum" required onChange={handleChange} value={formData.specialityenum}>
+              <option value="">Selecione...</option>
+              {specialityOptions.map(spec => (<option key={spec} value={spec}>{spec.replace(/_/g, ' ')}</option>))}
+            </select>
           </div>
-          <div className="input-group">
-            <label htmlFor="CRMV">CRMV</label>
-            <input type="text" id="CRMV" placeholder="Digite o seu CRMV" required />
-          </div>
-          <div className="input-group">
-            <label htmlFor="email">Email</label>
-            <input type="email" id="email" placeholder="Digite o seu email" required />
-          </div>
-          <div className="input-group">
-            <label htmlFor="senha">Senha</label>
-            <input type="password" id="senha" placeholder="Digite a sua senha" required />
-          </div>
-          <div className="input-group">
-            <label htmlFor="confirmar-senha">Confirmar Senha</label>
-            <input type="password" id="confirmar-senha" placeholder="Confirmar Senha" required />
-          </div>
-          <button type="submit" className="button login-button">Cadastrar</button>
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Cadastrando...' : 'Finalizar Cadastro'}
+          </button>
         </form>
         <div className="links">
           <button type="button" className="link-button" onClick={onClose}>Voltar</button>
-          <button type="button" className="link-button" onClick={() => {
-            onClose();
-            // Aqui você pode chamar a função para abrir o modal de login se necessário
-          }}>Já tenho conta</button>
+          <button type="button" className="link-button" onClick={onSwitchToLogin}>Já tenho conta</button>
         </div>
       </div>
     </div>
