@@ -5,18 +5,22 @@ import api from '../../../services/api';
 import HeaderComCadastro from '../../../components/Header_com_cadastro';
 import Footer from '../../../components/Footer';
 import './css/styles.css';
+import { FaPencilAlt } from 'react-icons/fa'; // MUDANÇA: Importando o ícone de lápis
+import profileIcon from '../../../assets/images/Perfil/perfilIcon.png';
 
-// Enums e Constantes
 const speciesOptions = [ "CACHORRO", "GATO", "PASSARO", "PEIXE", "ROEDOR", "REPTIL", "COELHO", "OUTROS" ];
 const porteOptions = ["PEQUENO", "MEDIO", "GRANDE"];
 const genderOptions = ["Macho", "Femea"];
 const breedOptions = {
     CACHORRO: ["LABRADOR_RETRIEVER", "GOLDEN_RETRIEVER", "BULLDOG_FRANCES", "PASTOR_ALEMAO", "POODLE", "BEAGLE", "ROTTWEILER", "DACHSHUND", "SHIH_TZU", "OUTRO"],
     GATO: ["PERSA", "SIAMES", "MAINE_COON", "RAGDOLL", "BENGAL", "SPHYNX", "BRITISH_SHORTHAIR", "SCOTTISH_FOLD", "OUTRO"],
-    // ...
+    PASSARO: ["CALOPSITA", "CANARIO", "PERIQUITO_AUSTRALIANO", "AGAPORNIS", "RINGNECK", "CACATUA", "ARARA", "PAPAGAIO_VERDADEIRO", "OUTRO"],
+    PEIXE: ["BETA", "GUPPY", "GOLDFISH_COMETA", "MOLLY", "PLATY", "TETRA_NEON", "CORYDORA", "PEIXE_PALHACO", "OUTRO"],
+    ROEDOR: ["HAMSTER_SIRIO", "HAMSTER_ANAO_RUSSO", "RATO_TWISTER", "PORQUINHO_DA_INDIA_INGLES", "PORQUINHO_DA_INDIA_PERUANO", "CHINCHILA", "GERBIL", "ESQUILO_DA_MONGOLIA", "OUTRO"],
+    REPTIL: ["DRAGAO_BARBUDO", "CORN_SNAKE", "TARTARUGA_TIGRE_DAGUA", "LEOPARDO_GECKO", "IGUANA_VERDE", "PITON_REAL", "JIBOIA", "CAMALEAO", "OUTRO"],
+    COELHO: ["ANAO_HOLANDES", "MINI_LOP", "NOVA_ZELANDIA_BRANCO", "LIONHEAD", "FLEMISH_GIANT", "HOLLAND_LOP", "REX", "ANGORA_INGLES", "OUTRO"],
 };
 
-// Função ajudante para obter a chave de raça correta
 const getBreedKeyForSpecies = (species) => {
     switch (species) {
         case 'CACHORRO': return 'dogBreed';
@@ -41,6 +45,9 @@ const PetsDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+
     useEffect(() => {
         const fetchPetDetails = async () => {
             if (!petId) return;
@@ -49,8 +56,10 @@ const PetsDetails = () => {
                 const response = await api.get(`/pets/${petId}`);
                 setPetData(response.data);
                 setEditData(response.data);
+                setImagePreview(response.data.imageurl || profileIcon);
             } catch (err) {
                 setError('Não foi possível carregar os dados do pet.');
+                console.error(err);
             } finally {
                 setLoading(false);
             }
@@ -58,18 +67,21 @@ const PetsDetails = () => {
         fetchPetDetails();
     }, [petId]);
 
+    const handleImageChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         const updatedData = { ...editData, [name]: value };
         if (name === 'speciespet') {
-            updatedData.dogBreed = null;
-            updatedData.catBreed = null;
-            updatedData.birdBreed = null;
-            updatedData.fishBreed = null;
-            updatedData.rodentBreed = null;
-            updatedData.reptileBreed = null;
-            updatedData.rabbitBreed = null;
-            updatedData.personalizedBreed = null;
+            const keysToReset = ['dogBreed', 'catBreed', 'birdBreed', 'fishBreed', 'rodentBreed', 'reptileBreed', 'rabbitBreed'];
+            keysToReset.forEach(key => updatedData[key] = null);
+            updatedData.personalizedBreed = '';
         }
         setEditData(updatedData);
     };
@@ -77,29 +89,23 @@ const PetsDetails = () => {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
-            const { name, age, imageurl, speciespet, porte, gender, personalizedBreed } = editData;
-            const breedKey = getBreedKeyForSpecies(speciespet);
-            const selectedBreed = breedKey ? editData[breedKey] : null;
-
-            const dataToSend = {
-                name, age: parseInt(age), imageurl, speciespet, porte, gender, usuarioId: user.id,
-                dogBreed: null, catBreed: null, birdBreed: null, fishBreed: null, 
-                rodentBreed: null, reptileBreed: null, rabbitBreed: null,
-                personalizedBreed: null,
-            };
-
-            if (selectedBreed === 'OUTRO') {
-                dataToSend.personalizedBreed = personalizedBreed;
-            } else if (breedKey && selectedBreed) {
-                dataToSend[breedKey] = selectedBreed;
-            }
-
+            const dataToSend = { ...editData, age: parseInt(editData.age), usuarioId: user.id };
             const response = await api.put(`/pets/${petId}`, dataToSend);
             setPetData(response.data);
+
+            if (imageFile) {
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', imageFile);
+                const imageResponse = await api.post(`/upload/pet/${petId}`, uploadFormData);
+                const updatedPet = { ...response.data, imageurl: imageResponse.data.url };
+                setPetData(updatedPet);
+                setImagePreview(updatedPet.imageurl);
+            }
             setIsEditing(false);
             alert('Dados do pet atualizados com sucesso!');
         } catch (err) {
             alert('Erro ao salvar as alterações.');
+            console.error(err.response?.data || err);
         }
     };
 
@@ -115,7 +121,7 @@ const PetsDetails = () => {
             }
         }
     };
-    
+
     const handleEditClick = (event) => {
         event.preventDefault();
         setIsEditing(true);
@@ -125,6 +131,7 @@ const PetsDetails = () => {
         event.preventDefault();
         setIsEditing(false);
         setEditData(petData);
+        setImagePreview(petData.imageurl || profileIcon);
     };
 
     const renderBreedSelector = () => {
@@ -168,7 +175,14 @@ const PetsDetails = () => {
                     <form className="profile-content-column" onSubmit={handleUpdate}>
                         <div className="profile-picture-section">
                             <div className="profile-picture-container">
-                                <img src={petData.imageurl} alt={`Foto de ${petData.name}`} className="profile-picture" onError={(e) => { e.target.onerror = null; e.target.src='https://i.imgur.com/2qgrCI2.png' }}/>
+                                <img src={imagePreview} alt={`Foto de ${petData.name}`} className="profile-picture" onError={(e) => { e.target.onerror = null; e.target.src=profileIcon }}/>
+                                {isEditing && (
+                                <div className="profile-picture-edit">
+                                    {/* MUDANÇA: Usando o ícone de lápis */}
+                                    <label htmlFor="pet-image-input"><FaPencilAlt className="edit-icon" /></label>
+                                    <input id="pet-image-input" type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                                </div>
+                                )}
                             </div>
                         </div>
                         <div className="profile-info-section">
@@ -219,7 +233,7 @@ const PetsDetails = () => {
                                         </select>
                                     ) : <div className="info-field">{petData.porte}</div>}
                                 </div>
-                                 <div className="profile-field">
+                                <div className="profile-field">
                                     <label>Gênero</label>
                                     {isEditing ? (
                                         <select name="gender" value={editData.gender} onChange={handleInputChange} className="info-field editable">

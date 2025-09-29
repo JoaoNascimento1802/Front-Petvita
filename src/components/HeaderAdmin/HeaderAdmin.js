@@ -15,11 +15,9 @@ const HeaderAdmin = () => {
     const { logout } = useAuth();
     const navigate = useNavigate();
 
-    // Refs para detectar cliques fora dos menus
     const profileRef = useRef(null);
     const notificationRef = useRef(null);
 
-    // Efeito para buscar notificações (executa uma vez ao montar)
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
@@ -33,7 +31,6 @@ const HeaderAdmin = () => {
         fetchNotifications();
     }, []);
 
-    // Efeito para fechar os menus ao clicar fora
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -43,10 +40,8 @@ const HeaderAdmin = () => {
                 setShowNotifications(false);
             }
         };
-        // Adiciona o listener no documento
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
-            // Remove o listener ao desmontar o componente para evitar memory leaks
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
@@ -87,6 +82,7 @@ const HeaderAdmin = () => {
                     </div>
                     {showProfileDropdown && (
                         <div className="dropdown-menu">
+                            {/* CORREÇÃO: O link agora aponta para a rota correta do admin */}
                             <NavLink to="/admin/perfil" className="dropdown-item">Meu Perfil</NavLink>
                             <button onClick={handleLogout} className="dropdown-item" style={{border: 'none', width: '100%', textAlign: 'left', background: 'none', cursor: 'pointer'}}>Sair</button>
                         </div>
