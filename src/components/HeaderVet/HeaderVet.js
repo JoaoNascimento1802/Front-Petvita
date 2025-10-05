@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/images/Header/LogoPet_vita(Atualizado).png';
-import profileIcon from '../../assets/images/Header/perfilIcon.png';
+import profileIcon from '../../assets/images/Header/perfilIcon.png'; // Ícone padrão como fallback
 import { BsChatDots, BsBellFill } from 'react-icons/bs';
 import './css/Header.css';
 
 const HeaderVet = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const { logout } = useAuth();
+  // ===== ALTERAÇÃO 1: Obter o usuário completo do contexto =====
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -47,7 +48,12 @@ const HeaderVet = () => {
         
         <div className="profile-icon-container">
           <div className="profile-icon" onClick={() => setShowDropdown(!showDropdown)}>
-            <img src={profileIcon} alt="Perfil" />
+            {/* ===== ALTERAÇÃO 2: Usar a imagem do usuário ou o ícone padrão ===== */}
+            <img 
+              src={user?.imageurl || profileIcon} 
+              alt="Perfil"
+              onError={(e) => { e.target.onerror = null; e.target.src = profileIcon; }} // Fallback se a URL da imagem quebrar
+            />
           </div>
           {showDropdown && (
             <div className="dropdown-menu">

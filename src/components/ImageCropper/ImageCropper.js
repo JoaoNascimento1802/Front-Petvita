@@ -2,14 +2,19 @@ import React, { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import './ImageCropper.css';
 
-// Função utilitária para criar um arquivo de imagem a partir dos dados do corte
 const getCroppedImg = async (imageSrc, pixelCrop) => {
     const image = new Image();
     image.src = imageSrc;
+    await new Promise(resolve => { image.onload = resolve });
+
     const canvas = document.createElement('canvas');
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;
     const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+        return null;
+    }
 
     ctx.drawImage(
         image,
@@ -23,33 +28,23 @@ const getCroppedImg = async (imageSrc, pixelCrop) => {
         pixelCrop.height
     );
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         canvas.toBlob((blob) => {
             if (!blob) {
                 console.error('Canvas is empty');
                 return;
             }
-            blob.name = 'newFile.jpeg';
             resolve(new File([blob], 'cropped-image.jpeg', { type: 'image/jpeg' }));
         }, 'image/jpeg');
     });
 };
-
 
 const ImageCropper = ({ imageSrc, onCropComplete, onClose }) => {
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
-    const onCropChange = useCallback((location) => {
-        setCrop(location);
-    }, []);
-
-    const onZoomChange = useCallback((zoomValue) => {
-        setZoom(zoomValue);
-    }, []);
-
-    const onCropPixelsChange = useCallback((croppedArea, croppedAreaPixelsValue) => {
+    const onCropCompleteCallback = useCallback((croppedArea, croppedAreaPixelsValue) => {
         setCroppedAreaPixels(croppedAreaPixelsValue);
     }, []);
 
@@ -68,10 +63,10 @@ const ImageCropper = ({ imageSrc, onCropComplete, onClose }) => {
                         image={imageSrc}
                         crop={crop}
                         zoom={zoom}
-                        aspect={1 / 1} // Força o corte quadrado (ideal para avatares)
-                        onCropChange={onCropChange}
-                        onZoomChange={onZoomChange}
-                        onCropComplete={onCropPixelsChange}
+                        aspect={1 / 1}
+                        onCropChange={setCrop}
+                        onZoomChange={setZoom}
+                        onCropComplete={onCropCompleteCallback}
                     />
                 </div>
                 <div className="cropper-controls">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import HeaderComCadastro from '../../components/Header_com_cadastro';
@@ -13,44 +13,39 @@ const ProfileScreen = () => {
     const [userData, setUserData] = useState(null);
     const [editData, setEditData] = useState({});
     const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const [isEditing, setIsEditing] = useState(false);
-
     const [imageToCrop, setImageToCrop] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(profileIcon);
+    const [hasChanges, setHasChanges] = useState(false);
 
-    useEffect(() => {
-        if (user) {
-            const fetchUserData = async () => {
-                setLoading(true);
-                try {
-                    const response = await api.get('/users/me');
-                    setUserData(response.data);
-                    setEditData(response.data);
-                    if (response.data.imageurl) {
-                        setImagePreview(response.data.imageurl);
-                    }
-                } catch (err) {
-                    setError('Não foi possível carregar os dados do perfil.');
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchUserData();
-        } else {
+    const fetchUserData = useCallback(async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            // CORREÇÃO APLICADA AQUI
+            const response = await api.get(`/users/me?_t=${new Date().getTime()}`);
+            setUserData(response.data);
+            setEditData(response.data);
+            setImagePreview(response.data.imageurl || profileIcon);
+        } catch (err) {
+            setError('Não foi possível carregar os dados do perfil.');
+        } finally {
             setLoading(false);
         }
     }, [user]);
 
+    useEffect(() => {
+        fetchUserData();
+    }, [fetchUserData]);
+
     const handleImageChange = (e) => {
         if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImageToCrop(reader.result);
-            };
-            reader.readAsDataURL(file);
+            reader.onloadend = () => { setImageToCrop(reader.result); };
+            reader.readAsDataURL(e.target.files[0]);
         }
     };
 
@@ -58,45 +53,45 @@ const ProfileScreen = () => {
         setImageFile(croppedFile);
         setImagePreview(URL.createObjectURL(croppedFile));
         setImageToCrop(null);
+        setHasChanges(true);
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setEditData(prev => ({ ...prev, [name]: value }));
+        setHasChanges(true);
     };
 
     const handleSaveChanges = async (e) => {
         e.preventDefault();
+        setIsSaving(true);
         try {
-            const updateDTO = {
-                username: editData.username,
-                email: editData.email,
-                phone: editData.phone,
-                address: editData.address,
-                rg: editData.rg,
-            };
-            const response = await api.put(`/users/${user.id}`, updateDTO);
-            setUserData(response.data);
+            const updateDTO = { username: editData.username, email: editData.email, phone: editData.phone, address: editData.address };
+            await api.put(`/users/me`, updateDTO);
 
             if (imageFile) {
                 const uploadFormData = new FormData();
                 uploadFormData.append('file', imageFile);
-                const imageResponse = await api.post(`/upload/user/${user.id}`, uploadFormData);
-                setUserData(prev => ({ ...prev, imageurl: imageResponse.data.url }));
-                setImagePreview(imageResponse.data.url);
+                await api.post(`/upload/user/${user.id}`, uploadFormData);
             }
 
-            setIsEditing(false);
             alert('Perfil atualizado com sucesso!');
+            setIsEditing(false);
+            setHasChanges(false);
+            setImageFile(null);
+            await fetchUserData(); 
         } catch (err) {
             alert('Erro ao salvar as alterações.');
+        } finally {
+            setIsSaving(false);
         }
     };
-    
+
     const handleCancel = () => {
         setIsEditing(false);
         setEditData(userData);
         setImagePreview(userData.imageurl || profileIcon);
+        setHasChanges(false);
     };
 
     const renderProfileContent = () => {
@@ -109,7 +104,7 @@ const ProfileScreen = () => {
                 <form className="profile-content" onSubmit={handleSaveChanges}>
                     <div className="profile-picture-section">
                         <div className="profile-picture-container">
-                            <img src={imagePreview} alt="Foto de perfil" className="profile-picture" />
+                            <img src={imagePreview} alt="Foto de perfil" className="profile-picture" onError={(e) => { e.target.onerror = null; e.target.src=profileIcon }}/>
                             {isEditing && (
                             <div className="profile-picture-edit">
                                 <label htmlFor="profile-image-input"><FaPencilAlt className="edit-icon" /></label>
@@ -142,7 +137,9 @@ const ProfileScreen = () => {
                         <div className="profile-actions">
                             {isEditing ? (
                                 <>
-                                    <button type="submit" className="save-button">Salvar Alterações</button>
+                                    <button type="submit" className="save-button" disabled={!hasChanges || isSaving}>
+                                        {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                                    </button>
                                     <button type="button" className="cancel-button" onClick={handleCancel}>Cancelar</button>
                                 </>
                             ) : (

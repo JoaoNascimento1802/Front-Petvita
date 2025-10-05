@@ -6,7 +6,7 @@ import api from '../../../services/api';
 import HeaderComCadastro from '../../../components/Header_com_cadastro';
 import Footer from '../../../components/Footer';
 import ImageCropper from '../../../components/ImageCropper/ImageCropper';
-import '../css/styles.css';
+import './css/styles.css';
 
 const speciesOptions = [ "CACHORRO", "GATO", "PASSARO", "PEIXE", "ROEDOR", "REPTIL", "COELHO", "OUTROS" ];
 const porteOptions = ["PEQUENO", "MEDIO", "GRANDE"];
@@ -80,11 +80,7 @@ const AddPet = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!user?.id) { 
-            setError("Você precisa estar logado para cadastrar um pet."); 
-            return; 
-        }
-        
+
         setLoading(true);
         setError('');
 

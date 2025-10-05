@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import HeaderVet from '../../../components/HeaderVet/HeaderVet';
+import HeaderVet from '../../../components/HeaderVet';
 import Footer from '../../../components/Footer';
 import VetConsultasNav from '../components/VetConsultasNav';
 import '../css/styles.css';

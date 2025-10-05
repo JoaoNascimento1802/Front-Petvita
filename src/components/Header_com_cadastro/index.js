@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom'; // Adicionado NavLink e useNavigate
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/images/Header/LogoPet_vita(Atualizado).png';
-import profileIcon from '../../assets/images/Header/perfilIcon.png';
+import profileIcon from '../../assets/images/Header/perfilIcon.png'; // Ícone padrão como fallback
 import calendarIcon from '../../assets/images/Header/Calendario.png';
-import { BsChatDots } from 'react-icons/bs'; // Ícone de chat importado
+import { BsChatDots } from 'react-icons/bs';
 import './css/styles.css';
 
 const HeaderComCadastro = () => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const { logout } = useAuth();
+  // ===== ALTERAÇÃO 1: Obter o usuário completo do contexto =====
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -26,16 +27,19 @@ const HeaderComCadastro = () => {
         <NavLink to="/" className="nav_link">Home</NavLink>
         <NavLink to="/consultas" className="nav_link">Consultas</NavLink>
         <NavLink to="/pets" className="nav_link">Pets</NavLink>
-        {/* ===== LINK DE CHAT CORRIGIDO ===== */}
         <NavLink to="/conversations" className="nav_link">Chat</NavLink>
       </nav>
       <div className="icons-container">
         <NavLink to="/agendar-consulta" className="calendar-icon" title="Agendar Consulta"><img src={calendarIcon} alt="Calendário" /></NavLink>
-        {/* ===== LINK DE CHAT CORRIGIDO ===== */}
         <NavLink to="/conversations" className="header-icon" title="Chat"><BsChatDots size={26} /></NavLink>
         <div className="profile-icon-container">
           <div className="profile-icon" onClick={() => setShowDropdown(!showDropdown)}>
-            <img src={profileIcon} alt="Perfil" />
+            {/* ===== ALTERAÇÃO 2: Usar a imagem do usuário ou o ícone padrão ===== */}
+            <img 
+              src={user?.imageurl || profileIcon} 
+              alt="Perfil" 
+              onError={(e) => { e.target.onerror = null; e.target.src = profileIcon; }} // Fallback se a URL da imagem quebrar
+            />
           </div>
           {showDropdown && (
             <div className="dropdown-menu">

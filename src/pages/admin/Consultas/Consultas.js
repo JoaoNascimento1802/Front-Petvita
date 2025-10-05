@@ -6,11 +6,11 @@ import { FaEdit, FaTrash, FaSave, FaTimes } from 'react-icons/fa';
 import './Consultas.css';
 
 // NOVO: Array com as descrições das especialidades para o filtro
-const specialityLabels = [
-    "Clínico Geral", "Anestesiologia", "Cardiologia", "Dermatologia", "Endocrinologia",
-    "Gastroenterologia", "Neurologia", "Nutrição", "Oftalmologia", "Oncologia",
-    "Ortopedia", "Reprodução Animal", "Patologia", "Cirurgia Geral", "Cirurgia Ortopédica",
-    "Odontologia", "Zootecnia", "Animais Exóticos", "Acupuntura", "Fisioterapia", "Diagnóstico por Imagem"
+const specialityLabels = [ "Clínico Geral", "Anestesiologia", "Cardiologia", "Dermatologia", "Endocrinologia",
+    "CLINICO_GERAL", "ANESTESIOLOGIA", "CARDIOLOGIA", "DERMATOLOGIA", "ENDOCRINOLOGIA",
+    "GASTROENTEROLOGIA", "NEUROLOGIA", "NUTRICAO", "OFTALMOLOGIA", "ONCOLOGIA",
+    "ORTOPEDIA", "REPRODUCAO_ANIMAL", "PATOLOGIA", "CIRURGIA_GERAL", "CIRURGIA_ORTOPEDICA",
+    "ODONTOLOGIA", "ZOOTECNIA", "EXOTICOS", "ACUPUNTURA", "FISIOTERAPIA", "IMAGINOLOGIA"
 ];
 
 const Consultas = () => {
@@ -48,8 +48,7 @@ const Consultas = () => {
     useEffect(() => {
         let result = consultas.filter(c =>
             (c.userName?.toLowerCase() || c.petName?.toLowerCase() || '').includes(userFilter.toLowerCase()) &&
-            (c.veterinaryName?.toLowerCase() || '').includes(vetFilter.toLowerCase()) &&
-            // ALTERAÇÃO: Lógica de filtro para o select
+            (c.veterinaryName?.toLowerCase() || '').includes(vetFilter.toLowerCase()) && // ALTERAÇÃO: Lógica de filtro para o select
             (specialtyFilter ? c.speciality === specialtyFilter : true) &&
             (dateFilter ? c.consultationdate === dateFilter : true)
         );
