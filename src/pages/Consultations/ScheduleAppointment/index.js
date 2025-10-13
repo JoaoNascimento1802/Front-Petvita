@@ -37,16 +37,16 @@ const ScheduleAppointment = () => {
         const fetchData = async () => {
             if (user?.id) {
                 try {
-                    const [petsRes, vetsRes, servicesRes, usersRes] = await Promise.all([
+                    const [petsRes, vetsRes, servicesRes, employeesRes] = await Promise.all([
                         api.get('/pets/my-pets'),
                         api.get('/veterinary'),
-                        api.get('/admin/clinic-services'),
-                        api.get('/admin/users', { params: { size: 2000 } })
+                        api.get('/api/public/services'), // Endpoint público
+                        api.get('/api/employee/all')     // Endpoint público
                     ]);
                     setPets(petsRes.data || []);
                     setAllVets(vetsRes.data || []);
                     setClinicServices(servicesRes.data || []);
-                    setAllEmployees(usersRes.data.content.filter(u => u.role === 'EMPLOYEE') || []);
+                    setAllEmployees(employeesRes.data || []);
                 } catch (error) {
                     toast.error("Erro ao carregar dados. Tente recarregar a página.");
                 } finally {
@@ -58,6 +58,26 @@ const ScheduleAppointment = () => {
         };
         fetchData();
     }, [user, authLoading]);
+
+    const fetchAvailableTimes = useCallback(async () => {
+        if (formData.professionalId && formData.consultationdate && appointmentType === 'medical') {
+            try {
+                const response = await api.get(`/veterinary/${formData.professionalId}/available-slots`, {
+                    params: { date: formData.consultationdate }
+                });
+                const formattedTimes = response.data.map(time => time.substring(0, 5));
+                setAvailableTimes(formattedTimes || []);
+            } catch (error) {
+                console.error("Erro ao buscar horários", error);
+                setAvailableTimes([]);
+            }
+        }
+    }, [formData.professionalId, formData.consultationdate, appointmentType]);
+
+    useEffect(() => {
+        fetchAvailableTimes();
+    }, [fetchAvailableTimes]);
+
 
     const handleTypeSelect = (type) => {
         setAppointmentType(type);
@@ -197,7 +217,25 @@ const ScheduleAppointment = () => {
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="consultationtime">Hora</label>
-                                    <input type="time" id="consultationtime" name="consultationtime" value={formData.consultationtime} onChange={handleChange} required disabled={!formData.professionalId || !formData.consultationdate} />
+                                     {appointmentType === 'medical' ? (
+                                        <select 
+                                            id="consultationtime" 
+                                            name="consultationtime" 
+                                            value={formData.consultationtime} 
+                                            onChange={handleChange} 
+                                            required 
+                                            disabled={!formData.professionalId || !formData.consultationdate}
+                                        >
+                                            <option value="">Selecione um horário</option>
+                                            {availableTimes.length > 0 ? (
+                                                availableTimes.map(time => <option key={time} value={time}>{time}</option>)
+                                            ) : (
+                                                <option disabled>Nenhum horário disponível</option>
+                                            )}
+                                        </select>
+                                     ) : (
+                                        <input type="time" id="consultationtime" name="consultationtime" value={formData.consultationtime} onChange={handleChange} required disabled={!formData.professionalId || !formData.consultationdate} />
+                                     )}
                                 </div>
                             </div>
                             
@@ -220,4 +258,3 @@ const ScheduleAppointment = () => {
 };
 
 export default ScheduleAppointment;
-

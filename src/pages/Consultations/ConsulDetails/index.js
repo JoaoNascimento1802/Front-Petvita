@@ -4,11 +4,11 @@ import HeaderComCadastro from '../../../components/Header_com_cadastro';
 import Footer from '../../../components/Footer';
 import api from '../../../services/api';
 import './css/styles.css';
+import { toast } from 'react-toastify';
 
 const ConsulDetails = () => {
     const { consultaId } = useParams();
     const navigate = useNavigate();
-    
     const [consulta, setConsulta] = useState(null);
     const [editData, setEditData] = useState({});
     const [isEditing, setIsEditing] = useState(false);
@@ -23,13 +23,14 @@ const ConsulDetails = () => {
                 setEditData(response.data);
             } catch (error) {
                 console.error("Erro ao buscar detalhes da consulta", error);
+                toast.error("Não foi possível carregar os detalhes da consulta.");
             } finally {
                 setLoading(false);
             }
         };
         fetchConsulta();
     }, [consultaId]);
-    
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setEditData(prev => ({...prev, [name]: value}));
@@ -41,9 +42,9 @@ const ConsulDetails = () => {
             const response = await api.put(`/consultas/${consultaId}`, editData);
             setConsulta(response.data);
             setIsEditing(false);
-            alert('Consulta atualizada com sucesso!');
+            toast.success('Consulta atualizada com sucesso!');
         } catch (error) {
-            alert('Erro ao atualizar a consulta.');
+            toast.error('Erro ao atualizar a consulta.');
             console.error(error);
         }
     };
@@ -52,17 +53,17 @@ const ConsulDetails = () => {
         if (window.confirm('Tem certeza que deseja cancelar esta consulta?')) {
             try {
                 await api.post(`/consultas/${consultaId}/cancel`);
-                alert('Consulta cancelada com sucesso.');
+                toast.success('Consulta cancelada com sucesso.');
                 navigate('/consultas');
             } catch (error) {
-                alert('Não foi possível cancelar a consulta.');
+                toast.error('Não foi possível cancelar a consulta.');
                 console.error(error);
             }
         }
     };
 
-    if (loading) return <div className="loading-container">Carregando detalhes...</div>;
-    if (!consulta) return <div className="loading-container">Consulta não encontrada.</div>;
+    if (loading) return <div className="loading-container" style={{paddingTop: '150px', textAlign: 'center'}}>A carregar detalhes...</div>;
+    if (!consulta) return <div className="loading-container" style={{paddingTop: '150px', textAlign: 'center'}}>Consulta não encontrada.</div>;
 
     return (
         <div className="pets-details-page">
@@ -77,12 +78,26 @@ const ConsulDetails = () => {
                             <div className="form-group"><label>Pet</label><div className="detail-value">{consulta.petName}</div></div>
                             <div className="form-group"><label>Veterinário</label><div className="detail-value">{consulta.veterinaryName}</div></div>
                         </div>
+                        
+                        {/* --- BLOCO CORRIGIDO PARA EXIBIR SERVIÇO E PREÇO --- */}
+                        <div className="form-row">
+                             <div className="form-group">
+                                <label>Serviço Contratado</label>
+                                <div className="detail-value">{consulta.serviceName}</div>
+                            </div>
+                             <div className="form-group">
+                                <label>Preço</label>
+                                <div className="detail-value">R$ {consulta.servicePrice ? Number(consulta.servicePrice).toFixed(2) : 'N/A'}</div>
+                            </div>
+                        </div>
+                        {/* -------------------------------------------------- */}
+
                         <div className="form-row">
                              <div className="form-group">
                                 <label>Data</label>
                                 {isEditing ? <input type="date" name="consultationdate" value={editData.consultationdate} onChange={handleInputChange} className="info-field editable"/> : <div className="detail-value">{new Date(consulta.consultationdate + 'T00:00:00').toLocaleDateString('pt-BR')}</div>}
                             </div>
-                             <div className="form-group">
+                            <div className="form-group">
                                 <label>Hora</label>
                                 {isEditing ? <input type="time" name="consultationtime" value={editData.consultationtime} onChange={handleInputChange} className="info-field editable"/> : <div className="detail-value">{consulta.consultationtime}</div>}
                             </div>

@@ -32,7 +32,7 @@ const ConsulPending = () => {
                 const response = await api.get('/consultas/my-consultations');
                 setAllConsultas(response.data);
             } catch (err) {
-                setError('Falha ao buscar suas consultas.');
+                setError('Falha ao buscar as suas consultas.');
             } finally {
                 setLoading(false);
             }
@@ -41,10 +41,9 @@ const ConsulPending = () => {
     }, [user]);
 
     const renderContent = () => {
-        if (loading) return <p style={{textAlign: 'center', padding: '20px'}}>Carregando...</p>;
+        if (loading) return <p style={{textAlign: 'center', padding: '20px'}}>A carregar...</p>;
         if (error) return <p className="error-message">{error}</p>;
 
-        // ===== LÓGICA DO CALENDÁRIO RESTAURADA =====
         if (activeTab === 'calendario') {
             const renderizarDias = () => {
                 const dias = [];
@@ -57,19 +56,19 @@ const ConsulPending = () => {
                 for (let i = 0; i < offsetPrimeiroDia; i++) { dias.push(<div key={`vazio-${i}`} className="dia-celula vazio"></div>); }
 
                 for (let dia = 1; dia <= diasNoMes; dia++) {
-                const consultasDoDia = allConsultas.filter(c => new Date(c.consultationdate).getDate() + 1 === dia && new Date(c.consultationdate).getMonth() === mes);
-                dias.push(
-                    <div key={dia} className="dia-celula">
-                    <span className="numero-dia">{dia}</span>
-                    {consultasDoDia.length > 0 && (
-                        <div className="marcadores-container">
-                        {consultasDoDia.map((consulta) => (
-                            <div key={consulta.id} className="marcador-consulta" title={`${consulta.petName} às ${consulta.consultationtime}`}></div>
-                        ))}
+                    const consultasDoDia = allConsultas.filter(c => new Date(c.consultationdate).getUTCDate() === dia && new Date(c.consultationdate).getUTCMonth() === mes);
+                    dias.push(
+                        <div key={dia} className="dia-celula">
+                            <span className="numero-dia">{dia}</span>
+                            {consultasDoDia.length > 0 && (
+                                <div className="marcadores-container">
+                                    {consultasDoDia.map((consulta) => (
+                                        <div key={consulta.id} className="marcador-consulta" title={`${consulta.petName} às ${consulta.consultationtime}`}></div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
-                    </div>
-                );
+                    );
                 }
                 return dias;
             };
@@ -79,17 +78,14 @@ const ConsulPending = () => {
                 </div>
             );
         }
-        // ===========================================
+        
+        const dataMap = {
+            pendentes: allConsultas.filter(c => c.status === 'PENDENTE'),
+            agendadas: allConsultas.filter(c => c.status === 'AGENDADA'),
+            historico: allConsultas.filter(c => ['FINALIZADA', 'CANCELADA', 'RECUSADA'].includes(c.status)),
+        };
 
-        // ===== LÓGICA DAS ABAS CORRIGIDA =====
-        const pendentes = allConsultas.filter(c => c.status === 'PENDENTE');
-        const agendadas = allConsultas.filter(c => c.status === 'AGENDADA');
-        const historico = allConsultas.filter(c => ['FINALIZADA', 'CANCELADA', 'RECUSADA'].includes(c.status));
-
-        let dataToRender = [];
-        if (activeTab === 'pendentes') dataToRender = pendentes;
-        if (activeTab === 'agendadas') dataToRender = agendadas;
-        if (activeTab === 'historico') dataToRender = historico;
+        const dataToRender = dataMap[activeTab] || [];
 
         if (dataToRender.length === 0) return <p style={{textAlign: 'center', padding: '20px'}}>Nenhuma consulta encontrada nesta aba.</p>;
         
@@ -102,8 +98,13 @@ const ConsulPending = () => {
                 <div className="pet-card">
                     <div className="pet-info">
                         <h3 className="pet-name">{c.petName}</h3>
-                        <span className="card-subtitle">{c.speciality} com {c.veterinaryName}</span>
-                        <span className="card-subtitle">{new Date(c.consultationdate + 'T' + c.consultationtime).toLocaleString('pt-BR', { day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="card-subtitle">{c.serviceName}</span>
+                        <span className="card-subtitle-small">
+                            Com {c.veterinaryName} - R$ {c.servicePrice ? Number(c.servicePrice).toFixed(2) : '0.00'}
+                        </span>
+                        <span className="card-subtitle-small">
+                            {new Date(c.consultationdate + 'T' + c.consultationtime).toLocaleString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
                     </div>
                     <span className={`status-badge ${c.status.toLowerCase()}`}>{c.status}</span>
                 </div>
@@ -127,7 +128,7 @@ const ConsulPending = () => {
                     </div>
                     <div className="consultas-list-container">{renderContent()}</div>
                     <div className="add-consulta-container">
-                        <Link to="/agendar-consulta" className="action-button-primary">Agendar Nova Consulta</Link>
+                        <Link to="/agendar-consulta" className="action-button-primary">Agendar Novo Serviço</Link>
                     </div>
                 </div>
             </main>

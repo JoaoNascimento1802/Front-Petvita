@@ -33,7 +33,6 @@ const EmployeeList = () => {
             };
 
             const response = await api.get('/admin/users', { params });
-            // Filtra para exibir apenas usuários com a role 'EMPLOYEE'
             const employeeUsers = response.data.content.filter(user => user.role === 'EMPLOYEE');
             
             setEmployees(employeeUsers);
@@ -138,20 +137,34 @@ const EmployeeList = () => {
                                     <div key={p.id} className="admin-card">
                                         {editingId === p.id ? (
                                             <>
+                                                {/* --- FORMULÁRIO DE EDIÇÃO CORRIGIDO --- */}
+                                                <div className="card-header-admin">
+                                                    <span className="card-title">Editando: {editFormData.username}</span>
+                                                </div>
                                                 <div className="card-body-admin">
-                                                    <div className="form-group-card"><label>Nome do Funcionário</label><input type="text" name="username" value={editFormData.username} onChange={handleFormChange} className="card-input" /></div>
-                                                    <div className="form-group-card"><label>Email</label><input type="email" name="email" value={editFormData.email} onChange={handleFormChange} className="card-input" /></div>
-                                                    <div className="form-group-card"><label>Telefone</label><input type="text" name="phone" value={editFormData.phone} onChange={handleFormChange} className="card-input"/></div>
+                                                    <div className="form-group-card">
+                                                        <label>Nome do Funcionário</label>
+                                                        <input type="text" name="username" value={editFormData.username} onChange={handleFormChange} className="card-input" />
+                                                    </div>
+                                                    <div className="form-group-card">
+                                                        <label>Email</label>
+                                                        <input type="email" name="email" value={editFormData.email} onChange={handleFormChange} className="card-input" />
+                                                    </div>
+                                                    <div className="form-group-card">
+                                                        <label>Telefone</label>
+                                                        <input type="text" name="phone" value={editFormData.phone} onChange={handleFormChange} className="card-input"/>
+                                                    </div>
                                                 </div>
                                                 <div className="card-actions-admin">
                                                     <button className="action-button-card cancel" onClick={handleCancelClick}><FaTimes /> Cancelar</button>
                                                     <button className="action-button-card save" onClick={() => handleSaveClick(p.id)}><FaSave /> Salvar</button>
                                                 </div>
+                                                {/* ------------------------------------- */}
                                             </>
                                         ) : (
                                             <>
                                                 <div className="card-header-admin">
-                                                    <div className="card-avatar-placeholder">{p.username.charAt(0)}</div>
+                                                    <img src={p.imageurl} alt={p.username} className="card-avatar" onError={(e) => { e.target.onerror = null; e.target.src='https://i.imgur.com/2qgrCI2.png' }}/>
                                                     <span className="card-title">{p.username}</span>
                                                 </div>
                                                 <div className="card-body-admin">
