@@ -1,17 +1,17 @@
-// src/App.js
-
+import React from 'react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AppRoutes from './routes/index.js';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Importa TODOS os headers
 import HeaderSemCadastro from './components/Header_sem_cadastro/index.js';
 import HeaderComCadastro from './components/Header_com_cadastro/index.js';
 import HeaderVet from './components/HeaderVet/HeaderVet.js';
 import HeaderAdmin from './components/HeaderAdmin/HeaderAdmin.js';
+import HeaderEmployee from './components/HeaderEmployee/index.js'; // NOVO: Import do Header do Funcionário
 
-// NOVO: Componente para controlar o layout (Header + Conteúdo)
-// Este componente fica responsável por decidir qual header mostrar.
 const AppLayout = () => {
   const { user } = useAuth();
   const location = useLocation();
@@ -19,16 +19,17 @@ const AppLayout = () => {
   const renderHeader = () => {
     const path = location.pathname;
 
-    // Se a URL começar com /admin, mostra o HeaderAdmin
     if (path.startsWith('/admin')) {
-      // O PrivateRoute já garante que o usuário terá a role correta,
-      // mas é uma boa prática verificar aqui também.
       return user?.role === 'ADMIN' ? <HeaderAdmin /> : null;
     }
 
-    // Se a URL começar com /vet, mostra o HeaderVet
     if (path.startsWith('/vet')) {
       return user?.role === 'VETERINARY' ? <HeaderVet /> : null;
+    }
+
+    // NOVO: Renderiza o header do funcionário para as rotas /employee
+    if (path.startsWith('/employee')) {
+      return user?.role === 'EMPLOYEE' ? <HeaderEmployee /> : null;
     }
     
     // Para todas as outras rotas, decide entre o header de usuário logado e deslogado
@@ -38,8 +39,7 @@ const AppLayout = () => {
   return (
     <div className="App">
       {renderHeader()}
-      <AppRoutes />
-      {/* O Footer é renderizado dentro de cada página, o que está correto. */}
+      {/* O conteúdo das rotas é renderizado pelo AppRoutes */}
     </div>
   );
 };
@@ -49,8 +49,20 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        {/* CORREÇÃO: Usamos o novo componente de layout que contém a lógica do header */}
         <AppLayout />
+        <AppRoutes />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </BrowserRouter>
     </AuthProvider>
   );
