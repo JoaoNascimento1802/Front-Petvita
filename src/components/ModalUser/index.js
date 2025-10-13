@@ -3,25 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './css/styles.css';
 import logo from '../../assets/images/Header/LogoPet_vita(Atualizado).png';
+import { toast } from 'react-toastify';
 
-// Recebe a nova prop 'onSwitchToRegister'
-const ModalUser = ({ onClose, switchToVet, onSwitchToRegister }) => {
+const ModalUser = ({ onClose, switchToVet, onSwitchToRegister, onSwitchToForgotPassword }) => {
   const { login } = useAuth();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  // ADICIONADO: Estado para o checkbox "Lembrar-me"
+  const [rememberMe, setRememberMe] = useState(true); 
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
-
     try {
-      const loggedInUser = await login(email, password);
+      // ALTERADO: Passando o estado de rememberMe para a função de login
+      const loggedInUser = await login(email, password, rememberMe);
       onClose();
+      
+      toast.success(`Bem-vindo(a) de volta, ${loggedInUser.username}!`);
 
       switch(loggedInUser.role) {
         case 'ADMIN': navigate('/admin/dashboard'); break;
@@ -29,9 +31,8 @@ const ModalUser = ({ onClose, switchToVet, onSwitchToRegister }) => {
         case 'USER': navigate('/'); break;
         default: navigate('/');
       }
-
     } catch (err) {
-      setError('E-mail ou senha inválidos. Por favor, tente novamente.');
+      toast.error('E-mail ou senha inválidos. Por favor, tente novamente.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -39,7 +40,6 @@ const ModalUser = ({ onClose, switchToVet, onSwitchToRegister }) => {
   };
 
   return (
-    // ===== ALTERAÇÃO 1: onClick removido daqui =====
     <div className="modal active">
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <span className="close" onClick={onClose}>&times;</span>
@@ -51,7 +51,6 @@ const ModalUser = ({ onClose, switchToVet, onSwitchToRegister }) => {
           <img src={logo} alt="Pet Vita Logo" />
         </div>
         <form className="form" onSubmit={handleLogin}>
-          {error && <p className="error-message">{error}</p>}
           <div className="input-group">
             <label htmlFor="email-user">Email</label>
             <input 
@@ -74,11 +73,19 @@ const ModalUser = ({ onClose, switchToVet, onSwitchToRegister }) => {
           </div>
           <div className="options">
             <div className="remember-me">
-              <input type="checkbox" id="remember" />
-              <label htmlFor="remember">Lembrar minha senha</label>
+              {/* ALTERADO: Checkbox funcional */}
+              <input 
+                type="checkbox" 
+                id="remember" 
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              <label htmlFor="remember">Lembrar-me</label>
             </div>
             <div className="forgot-password">
-              <a href="#">Esqueci a Senha</a>
+              <button type="button" className="link-button" onClick={onSwitchToForgotPassword}>
+                Esqueci a Senha
+              </button>
             </div>
           </div>
           <button type="submit" className="login-button" disabled={loading}>
@@ -87,7 +94,6 @@ const ModalUser = ({ onClose, switchToVet, onSwitchToRegister }) => {
         </form>
         <div className="links">
           <button type="button" className="link-button" onClick={onClose}>Voltar</button>
-          {/* ===== ALTERAÇÃO 2: Botão "Cadastrar-se" agora funcional ===== */}
           <button type="button" className="link-button" onClick={onSwitchToRegister}>
             Cadastrar-se
           </button>
