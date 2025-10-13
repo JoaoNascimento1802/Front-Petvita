@@ -12,7 +12,6 @@ const HeaderAdmin = () => {
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [notificationCount, setNotificationCount] = useState(0);
-    // ===== ALTERAÇÃO 1: Obter o usuário completo do contexto =====
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
@@ -60,10 +59,13 @@ const HeaderAdmin = () => {
             
             <nav className="nav nav-center">
                 <NavLink to="/admin/dashboard" className="nav_link">Home</NavLink>
-                <NavLink to="/admin/pacientes" className="nav_link">Pacientes</NavLink>
                 <NavLink to="/admin/veterinarios" className="nav_link">Veterinários</NavLink>
+                {/* Link para Funcionários foi reintroduzido aqui */}
+                <NavLink to="/admin/funcionarios" className="nav_link">Funcionários</NavLink>
+                <NavLink to="/admin/pacientes" className="nav_link">Pacientes</NavLink>
                 <NavLink to="/admin/consultas" className="nav_link">Consultas</NavLink>
                 <NavLink to="/admin/relatorios" className="nav_link">Relatórios</NavLink>
+                <NavLink to="/admin/services" className="nav_link">Serviços</NavLink>
             </nav>
 
             <div className="icons-container">
@@ -79,7 +81,6 @@ const HeaderAdmin = () => {
                 
                 <div className="profile-icon-container" ref={profileRef}>
                     <div className="profile-icon" onClick={() => setShowProfileDropdown(prev => !prev)}>
-                        {/* ===== ALTERAÇÃO 2: Usar a imagem do usuário ou o ícone padrão ===== */}
                         <img 
                           src={user?.imageurl || profileIcon} 
                           alt="Perfil"
@@ -99,3 +100,4 @@ const HeaderAdmin = () => {
 };
 
 export default HeaderAdmin;
+

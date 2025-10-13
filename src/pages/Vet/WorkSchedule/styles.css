@@ -1,0 +1,63 @@
+.schedule-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.schedule-day-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+.schedule-day-row:last-child {
+    border-bottom: none;
+}
+
+.day-label {
+    font-weight: bold;
+    font-size: 1.1rem;
+    width: 120px;
+    color: #333;
+}
+
+.time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.time-inputs input[type="time"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+.time-inputs input[type="time"]:disabled {
+    background-color: #f5f5f5;
+}
+
+.working-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.save-schedule-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.save-schedule-btn:hover {
+    background-color: #45a049;
+}

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import HeaderAdmin from '../../../components/HeaderAdmin/HeaderAdmin';
 import Footer from '../../../components/Footer';
 import api from '../../../services/api';
-import { FaChartBar, FaUserPlus, FaFileMedicalAlt, FaDownload } from 'react-icons/fa';
+import { FaChartBar, FaUserPlus, FaFileMedicalAlt, FaDownload, FaDollarSign } from 'react-icons/fa';
 import './Relatorios.css';
+import { toast } from 'react-toastify';
 
 const specialityOptions = [
     "CLINICO_GERAL", "ANESTESIOLOGIA", "CARDIOLOGIA", "DERMATOLOGIA", "ENDOCRINOLOGIA",
@@ -13,14 +14,9 @@ const specialityOptions = [
 ];
 
 const AdminRelatorios = () => {
-    // Estados para os filtros
     const [reportType, setReportType] = useState('monthly');
-    const [dateValue, setDateValue] = useState(new Date().toISOString().slice(0, 7)); // Padrão: mês atual
-    const [otherFilters, setOtherFilters] = useState({
-        veterinaryId: '',
-        speciality: ''
-    });
-
+    const [dateValue, setDateValue] = useState(new Date().toISOString().slice(0, 7));
+    const [otherFilters, setOtherFilters] = useState({ veterinaryId: '', speciality: '' });
     const [vets, setVets] = useState([]);
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -33,6 +29,7 @@ const AdminRelatorios = () => {
                 setVets(response.data);
             } catch (error) {
                 console.error("Erro ao buscar veterinários", error);
+                toast.error("Não foi possível carregar a lista de veterinários.");
             }
         };
         fetchVets();
@@ -59,7 +56,7 @@ const AdminRelatorios = () => {
 
     const fetchReport = async () => {
         setLoading(true);
-        setReportData(null); // Limpa dados antigos antes de buscar novos
+        setReportData(null);
         const { startDate, endDate } = getStartEndDates();
         if (!startDate || !endDate) {
             setLoading(false);
@@ -78,6 +75,7 @@ const AdminRelatorios = () => {
         } catch (error) {
             console.error("Erro ao buscar relatório", error);
             setReportData(null);
+            toast.error("Falha ao gerar o relatório.");
         } finally {
             setLoading(false);
         }
@@ -114,7 +112,7 @@ const AdminRelatorios = () => {
             link.parentNode.removeChild(link);
 
         } catch (error) {
-            alert('Não foi possível gerar o relatório em PDF.');
+            toast.error('Não foi possível gerar o relatório em PDF.');
             console.error("Erro ao gerar PDF:", error);
         } finally {
             setPdfLoading(false);
@@ -131,7 +129,7 @@ const AdminRelatorios = () => {
         setReportType(type);
         if (type === 'daily') setDateValue(new Date().toISOString().slice(0, 10));
         if (type === 'monthly') setDateValue(new Date().toISOString().slice(0, 7));
-        if (type === 'yearly') setDateValue(new Date().getFullYear());
+        if (type === 'yearly') setDateValue(new Date().getFullYear().toString());
     };
     
     const renderDateFilter = () => {
@@ -189,17 +187,17 @@ const AdminRelatorios = () => {
                     <>
                         <div className="stats-cards-grid">
                             <div className="stat-card">
+                                <div className="stat-icon revenue"><FaDollarSign /></div>
+                                <div className="stat-info">
+                                    <span className="stat-number">R$ {Number(reportData.totalRevenue || 0).toFixed(2)}</span>
+                                    <span className="stat-label">Faturamento (Finalizadas)</span>
+                                </div>
+                            </div>
+                            <div className="stat-card">
                                 <div className="stat-icon consultations"><FaFileMedicalAlt /></div>
                                 <div className="stat-info">
                                     <span className="stat-number">{reportData.totalConsultations}</span>
                                     <span className="stat-label">Consultas no Período</span>
-                                </div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-icon new-patients"><FaUserPlus /></div>
-                                <div className="stat-info">
-                                    <span className="stat-number">{reportData.consultationsByStatus?.AGENDADA || 0}</span>
-                                    <span className="stat-label">Agendadas</span>
                                 </div>
                             </div>
                             <div className="stat-card">
@@ -209,6 +207,19 @@ const AdminRelatorios = () => {
                                     <span className="stat-label">Finalizadas</span>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div className="report-section">
+                            <h3>Faturamento por Serviço (Consultas Finalizadas)</h3>
+                            {reportData.revenueByService && Object.keys(reportData.revenueByService).length > 0 ? (
+                                <ul className="patient-list">
+                                    {Object.entries(reportData.revenueByService).map(([serviceName, revenue]) => (
+                                        <li key={serviceName}>
+                                            {serviceName}: <strong>R$ {Number(revenue).toFixed(2)}</strong>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : <p>Nenhum faturamento registrado para os filtros selecionados.</p>}
                         </div>
 
                         <div className="report-section">

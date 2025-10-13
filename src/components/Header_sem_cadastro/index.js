@@ -6,6 +6,7 @@ import ModalVet from '../../components/ModalVet';
 import ModalUser from '../../components/ModalUser';
 import ModalRegisterUser from '../../components/ModalRegisterUser';
 import ModalRegisterVet from '../../components/ModalRegisterVet';
+import ForgotPasswordModal from '../../components/ForgotPasswordModal'; // 1. Importar o novo modal
 import './css/styles.css';
 
 const Header_sem_cadastro = () => {
@@ -16,6 +17,7 @@ const Header_sem_cadastro = () => {
   const openRegisterUser = () => setActiveModal('registerUser');
   const openLoginVet = () => setActiveModal('loginVet');
   const openRegisterVet = () => setActiveModal('registerVet');
+  const openForgotPassword = () => setActiveModal('forgotPassword'); // 2. Criar a função para abrir o modal
 
   return (
     <>
@@ -39,6 +41,7 @@ const Header_sem_cadastro = () => {
             onClose={closeModal} 
             onSwitchToRegister={openRegisterUser}
             switchToVet={openLoginVet}
+            onSwitchToForgotPassword={openForgotPassword} // 3. Passar a nova função como prop
         />, document.body
       )}
       {activeModal === 'registerUser' && ReactDOM.createPortal(
@@ -48,18 +51,25 @@ const Header_sem_cadastro = () => {
             switchToVet={openRegisterVet}
         />, document.body
       )}
-       {activeModal === 'loginVet' && ReactDOM.createPortal(
+      {activeModal === 'loginVet' && ReactDOM.createPortal(
         <ModalVet 
             onClose={closeModal} 
-            onSwitchToRegister={openRegisterVet} // Passando a prop para o modal de Vet
+            onSwitchToRegister={openRegisterVet}
             switchToUser={openLoginUser}
         />, document.body
       )}
       {activeModal === 'registerVet' && ReactDOM.createPortal(
         <ModalRegisterVet 
             onClose={closeModal} 
-            onSwitchToLogin={openLoginVet} // Passando a prop para o modal de Vet
+            onSwitchToLogin={openLoginVet}
             switchToUser={openRegisterUser}
+        />, document.body
+      )}
+      {/* 4. Adicionar a renderização do novo modal */}
+      {activeModal === 'forgotPassword' && ReactDOM.createPortal(
+        <ForgotPasswordModal
+            onClose={closeModal}
+            onSwitchToLogin={openLoginUser}
         />, document.body
       )}
     </>

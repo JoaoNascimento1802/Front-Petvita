@@ -1,0 +1,79 @@
+/* Estilos para a tabela */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+    font-size: 0.9em;
+    font-family: 'Poppins', sans-serif;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.styled-table thead tr {
+    background-color: #8D7EFB;
+    color: #ffffff;
+    text-align: left;
+    font-weight: bold;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+}
+
+.styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #8D7EFB;
+}
+
+.action-cell {
+    display: flex;
+    gap: 10px;
+}
+
+/* Estilos para o formulário de edição/criação */
+.form-container {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+.form-container h3 {
+    margin-top: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.form-container .form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-container input, .form-container textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    flex: 1;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}

@@ -28,6 +28,7 @@ const HeaderVet = () => {
         <NavLink to="/vet/dashboard" className="nav_link">Home</NavLink>
         <NavLink to="/vet/consultas" className="nav_link">Consultas</NavLink>
         <NavLink to="/vet/relatorios" className="nav_link">Relatórios</NavLink>
+        <NavLink to="/vet/schedule" className="nav_link">Agenda</NavLink>
       </nav>
 
       <div className="icons-container">

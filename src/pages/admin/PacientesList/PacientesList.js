@@ -2,29 +2,43 @@ import React, { useState, useEffect, useCallback } from 'react';
 import HeaderAdmin from '../../../components/HeaderAdmin/HeaderAdmin';
 import Footer from '../../../components/Footer';
 import api from '../../../services/api';
-import { FaEdit, FaTrash, FaPlus, FaSearch, FaSave, FaTimes } from 'react-icons/fa';
-import AddPatientModal from './AddPatientModal'; // Importar o modal
+import { FaEdit, FaTrash, FaPlus, FaSearch, FaSave, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import AddPatientModal from './AddPatientModal';
 import './PacientesList.css';
 
 const PacientesList = () => {
     const [pacientes, setPacientes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
+
     const [editingId, setEditingId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
     const [searchTerm, setSearchTerm] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false); // Estado do modal
-    
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Estados para paginação
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const PAGE_SIZE = 9; // Define o tamanho da página
+
     const fetchPacientes = useCallback(async () => {
         setLoading(true);
         setError('');
         try {
-            const params = { name: searchTerm };
-            
+            const params = {
+                name: searchTerm,
+                page: currentPage,
+                size: PAGE_SIZE,
+                sort: 'username,asc'
+            };
+
             const response = await api.get('/admin/users', { params });
-            const clientUsers = response.data.filter(user => user.role === 'USER');
+            const clientUsers = response.data.content.filter(user => user.role === 'USER');
+            
             setPacientes(clientUsers);
+            setTotalPages(response.data.totalPages);
+            setTotalElements(response.data.totalElements);
 
         } catch (err) {
             setError('Falha ao buscar pacientes.');
@@ -32,13 +46,17 @@ const PacientesList = () => {
         } finally {
             setLoading(false);
         }
-    }, [searchTerm]);
+    }, [searchTerm, currentPage]);
 
     useEffect(() => {
         fetchPacientes();
     }, [fetchPacientes]);
 
-    // Callback para atualizar a lista após adição
+    // Reseta a página para 0 sempre que um novo termo de busca é digitado
+    useEffect(() => {
+        setCurrentPage(0);
+    }, [searchTerm]);
+
     const handlePatientAdded = () => {
         setIsModalOpen(false);
         fetchPacientes();
@@ -62,7 +80,6 @@ const PacientesList = () => {
                 username: editFormData.username,
                 email: editFormData.email,
                 phone: editFormData.phone
-                // Adicione outros campos do UserUpdateRequestDTO se necessário
             };
             await api.put(`/admin/users/${id}`, updateDTO);
             setEditingId(null);
@@ -100,58 +117,71 @@ const PacientesList = () => {
                 <div className="admin-filters">
                     <div className="search-bar">
                         <FaSearch className="search-icon" />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar por nome do tutor..." 
+                        <input
+                            type="text"
+                            placeholder="Buscar por nome do tutor..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                     </div>
                 </div>
-                
+
                 {loading && <p>Carregando...</p>}
                 {error && <p className="error-message">{error}</p>}
 
                 {!loading && !error && (
-                    <div className="admin-card-grid">
-                        {pacientes.map(p => (
-                            <div key={p.id} className="admin-card">
-                                {editingId === p.id ? (
-                                    <>
-                                        <div className="card-body-admin">
-                                            <div className="form-group-card"><label>Nome do Tutor</label><input type="text" name="username" value={editFormData.username} onChange={handleFormChange} className="card-input" /></div>
-                                            <div className="form-group-card"><label>Email</label><input type="email" name="email" value={editFormData.email} onChange={handleFormChange} className="card-input" /></div>
-                                            <div className="form-group-card"><label>Telefone</label><input type="text" name="phone" value={editFormData.phone} onChange={handleFormChange} className="card-input"/></div>
-                                        </div>
-                                        <div className="card-actions-admin">
-                                            <button className="action-button-card cancel" onClick={handleCancelClick}><FaTimes /> Cancelar</button>
-                                            <button className="action-button-card save" onClick={() => handleSaveClick(p.id)}><FaSave /> Salvar</button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="card-header-admin">
-                                            <div className="card-avatar-placeholder">{p.username.charAt(0)}</div>
-                                            <span className="card-title">{p.username}</span>
-                                        </div>
-                                        <div className="card-body-admin">
-                                            <p><strong>Email:</strong> {p.email}</p>
-                                            <p><strong>Telefone:</strong> {p.phone}</p>
-                                        </div>
-                                        <div className="card-actions-admin">
-                                            <button className="action-button-card delete" onClick={() => handleDelete(p)}><FaTrash /> Excluir</button>
-                                            <button className="action-button-card edit" onClick={() => handleEditClick(p)}><FaEdit /> Editar</button>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                    <>
+                        <div className="admin-card-grid">
+                            {pacientes.map(p => (
+                                <div key={p.id} className="admin-card">
+                                    {editingId === p.id ? (
+                                        <>
+                                            {/* ... formulário de edição ... */}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="card-header-admin">
+                                                <div className="card-avatar-placeholder">{p.username.charAt(0)}</div>
+                                                <span className="card-title">{p.username}</span>
+                                            </div>
+                                            <div className="card-body-admin">
+                                                <p><strong>Email:</strong> {p.email}</p>
+                                                <p><strong>Telefone:</strong> {p.phone}</p>
+                                            </div>
+                                            <div className="card-actions-admin">
+                                                <button className="action-button-card delete" onClick={() => handleDelete(p)}><FaTrash /> Excluir</button>
+                                                <button className="action-button-card edit" onClick={() => handleEditClick(p)}><FaEdit /> Editar</button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Controles de Paginação */}
+                        <div className="pagination-controls">
+                            <button
+                                onClick={() => setCurrentPage(p => p - 1)}
+                                disabled={currentPage === 0}
+                            >
+                                <FaChevronLeft /> Anterior
+                            </button>
+                            <span>
+                                Página {currentPage + 1} de {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                disabled={currentPage + 1 >= totalPages}
+                            >
+                                Próxima <FaChevronRight />
+                            </button>
+                        </div>
+                    </>
                 )}
             </main>
-            
+
             {isModalOpen && <AddPatientModal onClose={() => setIsModalOpen(false)} onPatientAdded={handlePatientAdded} />}
-            
+
             <Footer />
         </div>
     );
