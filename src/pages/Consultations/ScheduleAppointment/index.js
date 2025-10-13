@@ -11,15 +11,13 @@ const ScheduleAppointment = () => {
     const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
 
-    const [appointmentType, setAppointmentType] = useState(null); // 'medical' ou 'service'
-
+    const [appointmentType, setAppointmentType] = useState(null);
     const [pets, setPets] = useState([]);
     const [allVets, setAllVets] = useState([]);
     const [allEmployees, setAllEmployees] = useState([]);
     const [filteredProfessionals, setFilteredProfessionals] = useState([]);
     const [availableTimes, setAvailableTimes] = useState([]);
     const [clinicServices, setClinicServices] = useState([]);
-
     const [formData, setFormData] = useState({
         petId: '',
         professionalId: '',
@@ -40,8 +38,8 @@ const ScheduleAppointment = () => {
                     const [petsRes, vetsRes, servicesRes, employeesRes] = await Promise.all([
                         api.get('/pets/my-pets'),
                         api.get('/veterinary'),
-                        api.get('/api/public/services'), // Endpoint público
-                        api.get('/api/employee/all')     // Endpoint público
+                        api.get('/api/public/services'),
+                        api.get('/api/employee/all')
                     ]);
                     setPets(petsRes.data || []);
                     setAllVets(vetsRes.data || []);
@@ -77,7 +75,6 @@ const ScheduleAppointment = () => {
     useEffect(() => {
         fetchAvailableTimes();
     }, [fetchAvailableTimes]);
-
 
     const handleTypeSelect = (type) => {
         setAppointmentType(type);
@@ -115,24 +112,35 @@ const ScheduleAppointment = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        const endpoint = appointmentType === 'medical' ? '/consultas' : '/api/service-schedules';
-        const professionalField = appointmentType === 'medical' ? 'veterinarioId' : 'employeeId';
+        let endpoint = '';
+        let payload = {};
 
-        try {
-            const requestData = {
+        if (appointmentType === 'medical') {
+            endpoint = '/consultas';
+            payload = {
                 petId: parseInt(formData.petId),
-                [professionalField]: parseInt(formData.professionalId),
+                veterinarioId: parseInt(formData.professionalId),
                 clinicServiceId: parseInt(formData.clinicServiceId),
                 consultationdate: formData.consultationdate,
-                scheduleDate: formData.consultationdate,
-                scheduleTime: formData.consultationtime,
                 consultationtime: formData.consultationtime,
                 reason: formData.reason,
                 observations: formData.observations || 'Nenhuma observação.',
                 usuarioId: user.id,
             };
+        } else {
+            endpoint = '/api/service-schedules';
+            payload = {
+                petId: parseInt(formData.petId),
+                employeeId: parseInt(formData.professionalId),
+                clinicServiceId: parseInt(formData.clinicServiceId),
+                scheduleDate: formData.consultationdate,
+                scheduleTime: formData.consultationtime,
+                observations: formData.reason,
+            };
+        }
 
-            await api.post(endpoint, requestData);
+        try {
+            await api.post(endpoint, payload);
             toast.success(`Agendamento de ${appointmentType === 'medical' ? 'consulta' : 'serviço'} solicitado com sucesso!`);
             navigate(appointmentType === 'medical' ? '/consultas' : '/');
         } catch (error) {
@@ -141,9 +149,12 @@ const ScheduleAppointment = () => {
         }
     };
 
+    // --- CORREÇÃO PRINCIPAL AQUI ---
+    // O código agora filtra usando `s.medicalService` em vez de `s.isMedicalService`
     const relevantServices = appointmentType
-        ? clinicServices.filter(s => s.isMedicalService === (appointmentType === 'medical'))
+        ? clinicServices.filter(s => s.medicalService === (appointmentType === 'medical'))
         : [];
+    // --------------------------------
 
     if (authLoading || loading) {
         return <p style={{ paddingTop: '150px', textAlign: 'center' }}>A carregar...</p>;
@@ -154,7 +165,7 @@ const ScheduleAppointment = () => {
             <HeaderComCadastro />
             <div className="welcome-section">
                 <h1 className="welcome-title">Novo Agendamento</h1>
-                <p>Selecione o tipo de serviço que precisa para o seu pet.</p>
+                <p>Primeiro, selecione o tipo de serviço que você precisa para o seu pet.</p>
             </div>
             <div className="add-pet-wrapper">
                 <div className="add-pet-container">

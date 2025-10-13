@@ -16,7 +16,6 @@ const specialityOptions = [
 const ClinicServices = () => {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     
     const [editingId, setEditingId] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
@@ -30,7 +29,7 @@ const ClinicServices = () => {
             const response = await api.get('/admin/clinic-services');
             setServices(response.data);
         } catch (err) {
-            setError('Falha ao buscar os serviços da clínica.');
+            toast.error('Falha ao buscar os serviços da clínica.');
             console.error(err);
         } finally {
             setLoading(false);
@@ -43,7 +42,14 @@ const ClinicServices = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        
+        let updatedData = { ...formData, [name]: value };
+
+        if (name === 'isMedicalService' && value === 'false') {
+            updatedData.speciality = 'ESTETICA';
+        }
+
+        setFormData(updatedData);
     };
 
     const handleSave = async (e) => {
@@ -65,7 +71,8 @@ const ClinicServices = () => {
             resetForm();
             fetchServices();
         } catch (err) {
-            toast.error('Erro ao salvar o serviço.');
+            const errorMsg = err.response?.data?.message || 'Erro ao salvar o serviço.';
+            toast.error(errorMsg);
             console.error(err.response?.data || err);
         }
     };
@@ -89,19 +96,17 @@ const ClinicServices = () => {
             name: service.name, 
             description: service.description, 
             price: service.price,
-            isMedicalService: String(service.isMedicalService),
+            isMedicalService: String(service.medicalService),
             speciality: service.speciality
         });
     };
 
-    // CORREÇÃO: A função resetForm não deve mais fechar o formulário.
     const resetForm = () => {
         setEditingId(null);
-        setIsCreating(false); // Agora é seguro fechar o formulário aqui.
+        setIsCreating(false);
         setFormData(initialFormData);
     };
 
-    // CORREÇÃO: Lógica do botão "Adicionar" simplificada.
     const handleAddNewClick = () => {
         setEditingId(null);
         setFormData(initialFormData);
@@ -132,10 +137,15 @@ const ClinicServices = () => {
                                     <option value="false">Serviço Geral / Estética</option>
                                     <option value="true">Serviço Médico (Consulta)</option>
                                 </select>
-                                <select name="speciality" value={formData.speciality} onChange={handleInputChange} required>
-                                    {specialityOptions.map(spec => (
-                                        <option key={spec} value={spec}>{spec.replace(/_/g, " ")}</option>
-                                    ))}
+                                
+                                <select name="speciality" value={formData.speciality} onChange={handleInputChange} required disabled={formData.isMedicalService === 'false'}>
+                                    {formData.isMedicalService === 'false' ? (
+                                        <option value="ESTETICA">Estética</option>
+                                    ) : (
+                                        specialityOptions.map(spec => (
+                                            spec !== 'ESTETICA' && <option key={spec} value={spec}>{spec.replace(/_/g, " ")}</option>
+                                        ))
+                                    )}
                                 </select>
                             </div>
                             <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Descrição do serviço..." rows="3"></textarea>
@@ -148,7 +158,6 @@ const ClinicServices = () => {
                 )}
                 
                 {loading && <p>A carregar...</p>}
-                {error && <p className="error-message">{error}</p>}
                 
                 <table className="styled-table">
                     <thead>
@@ -167,8 +176,8 @@ const ClinicServices = () => {
                                 <td>{service.description}</td>
                                 <td>R$ {Number(service.price).toFixed(2)}</td>
                                 <td>
-                                    <span className={`service-type-badge ${service.isMedicalService ? 'medical' : 'general'}`}>
-                                        {service.isMedicalService ? 'Médico' : 'Geral'}
+                                    <span className={`service-type-badge ${service.medicalService ? 'medical' : 'general'}`}>
+                                        {service.medicalService ? 'Médico' : 'Geral'}
                                     </span>
                                 </td>
                                 <td className="action-cell">
@@ -185,4 +194,6 @@ const ClinicServices = () => {
     );
 };
 
+// --- CORREÇÃO AQUI ---
+// A linha de exportação agora está limpa e correta.
 export default ClinicServices;

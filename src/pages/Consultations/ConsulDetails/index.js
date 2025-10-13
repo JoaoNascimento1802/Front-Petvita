@@ -79,7 +79,6 @@ const ConsulDetails = () => {
                             <div className="form-group"><label>Veterinário</label><div className="detail-value">{consulta.veterinaryName}</div></div>
                         </div>
                         
-                        {/* --- BLOCO CORRIGIDO PARA EXIBIR SERVIÇO E PREÇO --- */}
                         <div className="form-row">
                              <div className="form-group">
                                 <label>Serviço Contratado</label>
@@ -90,7 +89,6 @@ const ConsulDetails = () => {
                                 <div className="detail-value">R$ {consulta.servicePrice ? Number(consulta.servicePrice).toFixed(2) : 'N/A'}</div>
                             </div>
                         </div>
-                        {/* -------------------------------------------------- */}
 
                         <div className="form-row">
                              <div className="form-group">
