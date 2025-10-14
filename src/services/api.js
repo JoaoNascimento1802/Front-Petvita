@@ -2,7 +2,7 @@ import axios from 'axios';
 
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080', // Porta padrão do Spring Boot
+  baseURL: 'https://videogamee-audkgzdjceemames.brazilsouth-01.azurewebsites.net/', // Porta padrão do Spring Boot
 });
 
 
