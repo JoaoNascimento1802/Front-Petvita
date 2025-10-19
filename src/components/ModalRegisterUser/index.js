@@ -3,16 +3,18 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import './css/styles.css';
 import logo from '../../assets/images/Header/LogoPet_vita(Atualizado).png';
+import defaultProfileIcon from '../../assets/images/Header/perfilIcon.png';
+import { toast } from 'react-toastify';
 
 const ModalRegisterUser = ({ onClose, switchToVet, onSwitchToLogin }) => {
-    const { login } = useAuth();
+    const { login, loadUserFromToken } = useAuth(); // Adicionado loadUserFromToken
+    
     const [formData, setFormData] = useState({
         username: '', email: '', password: '', phone: '',
-        address: '', rg: '', imageurl: 'https://i.pravatar.cc/150'
+        address: '', rg: '', imageurl: '' 
     });
     const [imageFile, setImageFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState('https://i.pravatar.cc/150');
-    const [error, setError] = useState('');
+    const [imagePreview, setImagePreview] = useState(defaultProfileIcon);
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
@@ -30,27 +32,38 @@ const ModalRegisterUser = ({ onClose, switchToVet, onSwitchToLogin }) => {
 
     const handleRegister = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
         try {
-            // Etapa 1: Registra o usuário com a URL de preview
-            const response = await api.post('/users/register', { ...formData, imageurl: imagePreview });
-            const newUser = response.data;
+            // --- FLUXO CORRIGIDO ---
 
-            // Etapa 2: Faz o upload da imagem se um arquivo foi selecionado
+            // 1. Regista o utilizador sem a URL da imagem.
+            const registerResponse = await api.post('/users/register', formData);
+            const newUser = registerResponse.data;
+
+            // 2. Faz o login IMEDIATAMENTE após o registo para obter o token JWT.
+            // O `login` irá guardar o token no storage e configurar o cabeçalho do Axios.
+            await login(formData.email, formData.password, true);
+
+            // 3. AGORA, com o token ativo, faz o upload da imagem (se houver uma).
             if (imageFile) {
                 const uploadFormData = new FormData();
                 uploadFormData.append('file', imageFile);
+                // Esta requisição agora irá com o cabeçalho de autenticação correto.
                 await api.post(`/upload/user/${newUser.id}`, uploadFormData);
             }
             
-            // Etapa 3: Faz o login
-            await login(formData.email, formData.password);
+            // 4. Recarrega os dados do utilizador no contexto para garantir que a imagem apareça.
+            await loadUserFromToken();
+
+            toast.success(`Bem-vindo(a), ${newUser.username}! Registo concluído com sucesso.`);
+            
             onClose();
-            window.location.href = '/';
+            // A navegação pode ser desnecessária se a página principal recarregar o estado
+            // window.location.href = '/'; 
+
         } catch (err) {
-            const errorMessage = err.response?.data?.message || 'Erro ao cadastrar. Verifique os dados.';
-            setError(errorMessage);
+            const errorMessage = err.response?.data?.message || 'Erro ao registar. Verifique os dados.';
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -66,21 +79,22 @@ const ModalRegisterUser = ({ onClose, switchToVet, onSwitchToLogin }) => {
                 </div>
                 <div className="logo-modal"><img src={logo} alt="Pet Vita Logo" /></div>
                 <form className="form" onSubmit={handleRegister}>
-                    {error && <p className="error-message">{error}</p>}
                     <div className="avatar-upload">
                         <label htmlFor="avatar-input-register-user" className="avatar-label">
                             <img src={imagePreview} alt="Preview" className="avatar-preview" />
                         </label>
                         <input id="avatar-input-register-user" type="file" accept="image/*" onChange={handleImageChange} className="avatar-input" />
                     </div>
+                    
                     <div className="input-group"><label htmlFor="username">Nome</label><input type="text" id="username" required onChange={handleChange} /></div>
                     <div className="input-group"><label htmlFor="email">Email</label><input type="email" id="email" required onChange={handleChange} /></div>
                     <div className="input-group"><label htmlFor="password">Senha</label><input type="password" id="password" required onChange={handleChange} /></div>
                     <div className="input-group"><label htmlFor="phone">Telefone</label><input type="tel" id="phone" required onChange={handleChange} /></div>
                     <div className="input-group"><label htmlFor="address">Endereço</label><input type="text" id="address" required onChange={handleChange} /></div>
                     <div className="input-group"><label htmlFor="rg">RG</label><input type="text" id="rg" required onChange={handleChange} /></div>
+                    
                     <button type="submit" className="login-button" disabled={loading}>
-                        {loading ? 'Cadastrando...' : 'Cadastrar'}
+                        {loading ? 'A registar...' : 'Registar'}
                     </button>
                 </form>
                 <div className="links">
