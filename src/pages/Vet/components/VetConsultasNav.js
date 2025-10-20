@@ -1,7 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
-const VetConsultasNav = ({ activeTab }) => {
+const VetConsultasNav = () => {
+  const location = useLocation();
+  // Determina a aba ativa com base no path ou no search param para garantir o destaque correto
+  const activeTab = location.pathname.includes('/schedule') 
+    ? 'calendario' 
+    : new URLSearchParams(location.search).get('tab') || 'pedidos';
+
   return (
     <div className="status-section">
       <div className="status-buttons">
@@ -23,11 +29,12 @@ const VetConsultasNav = ({ activeTab }) => {
         >
           Histórico
         </Link>
+        {/* O link agora aponta para a rota correta da agenda */}
         <Link 
-          to="/vet/consultas?tab=calendario" 
+          to="/vet/schedule" 
           className={`status-button ${activeTab === 'calendario' ? 'active' : ''}`}
         >
-          Calendário
+          Agenda
         </Link>
       </div>
     </div>

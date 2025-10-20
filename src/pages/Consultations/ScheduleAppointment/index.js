@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import HeaderComCadastro from '../../../components/Header_com_cadastro';
-import Footer from '../../../components/Footer';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../services/api';
-import '../css/styles.css';
+import HeaderComCadastro from '../../../components/Header_com_cadastro';
+import Footer from '../../../components/Footer';
 import { toast } from 'react-toastify';
+import './css/styles.css'; // <-- ADICIONE ESTA LINHA
 
 const ScheduleAppointment = () => {
     const { user, loading: authLoading } = useAuth();
@@ -41,17 +41,19 @@ const ScheduleAppointment = () => {
                         api.get('/api/public/services'),
                         api.get('/api/employee/all')
                     ]);
+          
                     setPets(petsRes.data || []);
                     setAllVets(vetsRes.data || []);
                     setClinicServices(servicesRes.data || []);
                     setAllEmployees(employeesRes.data || []);
                 } catch (error) {
-                    toast.error("Erro ao carregar dados. Tente recarregar a página.");
+                     toast.error("Erro ao carregar dados. Tente recarregar a página.");
+                     console.error("Erro na busca de dados iniciais:", error);
                 } finally {
                     setLoading(false);
                 }
             } else if (!authLoading) {
-                setLoading(false);
+                 setLoading(false);
             }
         };
         fetchData();
@@ -63,6 +65,7 @@ const ScheduleAppointment = () => {
                 const response = await api.get(`/veterinary/${formData.professionalId}/available-slots`, {
                     params: { date: formData.consultationdate }
                 });
+ 
                 const formattedTimes = response.data.map(time => time.substring(0, 5));
                 setAvailableTimes(formattedTimes || []);
             } catch (error) {
@@ -149,12 +152,9 @@ const ScheduleAppointment = () => {
         }
     };
 
-    // --- CORREÇÃO PRINCIPAL AQUI ---
-    // O código agora filtra usando `s.medicalService` em vez de `s.isMedicalService`
     const relevantServices = appointmentType
         ? clinicServices.filter(s => s.medicalService === (appointmentType === 'medical'))
         : [];
-    // --------------------------------
 
     if (authLoading || loading) {
         return <p style={{ paddingTop: '150px', textAlign: 'center' }}>A carregar...</p>;
@@ -167,29 +167,35 @@ const ScheduleAppointment = () => {
                 <h1 className="welcome-title">Novo Agendamento</h1>
                 <p>Primeiro, selecione o tipo de serviço que você precisa para o seu pet.</p>
             </div>
+  
             <div className="add-pet-wrapper">
                 <div className="add-pet-container">
                     
                     {!appointmentType ? (
                         <div className="type-selection">
-                            <button onClick={() => handleTypeSelect('medical')}>
+                             <button onClick={() => handleTypeSelect('medical')}>
                                 <div className="type-icon">🩺</div>
-                                <span>Consultas Médicas</span>
-                                <small>Para avaliações de saúde, vacinas e emergências.</small>
+                                <div>
+                                    <span>Consultas Médicas</span>
+                                    <small>Para avaliações de saúde, vacinas e emergências.</small>
+                                </div>
                             </button>
                             <button onClick={() => handleTypeSelect('service')}>
                                 <div className="type-icon">🛁</div>
-                                <span>Estética e Outros Serviços</span>
-                                <small>Para banho, tosa, corte de unhas e bem-estar.</small>
+                                <div>
+                                    <span>Estética e Outros Serviços</span>
+                                    <small>Para banho, tosa, corte de unhas e bem-estar.</small>
+                                </div>
                             </button>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="pet-form">
+    
                             <div className="form-header">
                                 <h2>{appointmentType === 'medical' ? 'Agendar Consulta Médica' : 'Agendar Serviço de Estética'}</h2>
                                 <button type="button" className="link-button" onClick={() => setAppointmentType(null)}>Trocar tipo de serviço</button>
                             </div>
-                            
+                         
                             <div className="form-row">
                                 <div className="form-group">
                                     <label htmlFor="petId">Selecione o seu Pet</label>
@@ -249,7 +255,7 @@ const ScheduleAppointment = () => {
                                      )}
                                 </div>
                             </div>
-                            
+  
                             <div className="form-group">
                                 <label htmlFor="reason">Motivo/Observação (mín. 5 caracteres)</label>
                                 <textarea id="reason" name="reason" value={formData.reason} onChange={handleChange} rows="3" required minLength="5"></textarea>

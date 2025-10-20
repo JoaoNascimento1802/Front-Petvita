@@ -1,100 +1,89 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import HeaderVet from '../../../components/HeaderVet/HeaderVet';
 import Footer from '../../../components/Footer';
 import api from '../../../services/api';
-import './styles.css';
+import VetConsultasNav from '../components/VetConsultasNav';
+import '../css/styles.css';
+import { toast } from 'react-toastify';
 
-const daysOfWeekMap = {
-    "MONDAY": "Segunda-feira",
-    "TUESDAY": "Terça-feira",
-    "WEDNESDAY": "Quarta-feira",
-    "THURSDAY": "Quinta-feira",
-    "FRIDAY": "Sexta-feira",
-    "SATURDAY": "Sábado",
-    "SUNDAY": "Domingo"
-};
-
-const WorkSchedule = () => {
-    const [schedules, setSchedules] = useState([]);
+const VetSchedule = () => {
+    const [consultas, setConsultas] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    const fetchSchedule = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await api.get('/vet/work-schedule');
-            // Ordena os dias da semana
-            const sorted = response.data.sort((a, b) => Object.keys(daysOfWeekMap).indexOf(a.dayOfWeek) - Object.keys(daysOfWeekMap).indexOf(b.dayOfWeek));
-            setSchedules(sorted);
-        } catch (error) {
-            console.error("Erro ao buscar agenda", error);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const [currentDate, setCurrentDate] = useState(new Date());
 
     useEffect(() => {
-        fetchSchedule();
-    }, [fetchSchedule]);
+        const fetchConsultas = async () => {
+            setLoading(true);
+            try {
+                const response = await api.get('/consultas/vet/my-consultations');
+                setConsultas(response.data);
+            } catch (err) {
+                toast.error("Falha ao buscar agendamentos para o calendário.");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchConsultas();
+    }, []);
 
-    const handleScheduleChange = (id, field, value) => {
-        setSchedules(prev => 
-            prev.map(day => 
-                day.id === id ? { ...day, [field]: value } : day
-            )
-        );
-    };
+    const renderCalendar = () => {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const offset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
 
-    const handleSave = async (scheduleItem) => {
-        try {
-            await api.put(`/vet/work-schedule/${scheduleItem.id}`, scheduleItem);
-            alert(`Horário de ${daysOfWeekMap[scheduleItem.dayOfWeek]} salvo com sucesso!`);
-        } catch (error) {
-            alert('Erro ao salvar horário.');
-            console.error(error);
+        const days = [];
+        for (let i = 0; i < offset; i++) {
+            days.push(<div key={`empty-${i}`} className="dia-celula vazio"></div>);
         }
-    };
 
-    if (loading) return <p className="loading-message">Carregando agenda...</p>;
+        for (let day = 1; day <= daysInMonth; day++) {
+            const consultationsOfTheDay = consultas.filter(c => {
+                // Ajuste para comparar datas ignorando fuso horário de forma segura
+                const consultDate = new Date(c.consultationdate);
+                return consultDate.getUTCDate() === day && consultDate.getUTCMonth() === month && consultDate.getUTCFullYear() === year;
+            });
+
+            days.push(
+                <div key={day} className="dia-celula">
+                    <span className="numero-dia">{day}</span>
+                    {consultationsOfTheDay.length > 0 && (
+                        <div className="marcadores-container">
+                            {consultationsOfTheDay.map((consulta) => (
+                                <div key={consulta.id} className="marcador-consulta" title={`${consulta.petName} às ${consulta.consultationtime}`}></div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        return days;
+    };
 
     return (
-        <div className="vet-page">
+        <div className="pet-profile-page">
             <HeaderVet />
             <main className="vet-content-full">
-                <div className="vet-page-header">
-                    <h1>Meus Horários de Atendimento</h1>
-                    <p>Defina sua agenda semanal. O sistema usará esses horários para mostrar sua disponibilidade aos clientes.</p>
-                </div>
-                <div className="schedule-container">
-                    {schedules.map(item => (
-                        <div key={item.id} className="schedule-day-row">
-                            <label className="day-label">{daysOfWeekMap[item.dayOfWeek]}</label>
-                            <div className="time-inputs">
-                                <input 
-                                    type="time" 
-                                    value={item.startTime} 
-                                    onChange={(e) => handleScheduleChange(item.id, 'startTime', e.target.value)}
-                                    disabled={!item.isWorking}
-                                />
-                                <span>às</span>
-                                <input 
-                                    type="time" 
-                                    value={item.endTime} 
-                                    onChange={(e) => handleScheduleChange(item.id, 'endTime', e.target.value)}
-                                    disabled={!item.isWorking}
-                                />
-                            </div>
-                            <div className="working-toggle">
-                                <input 
-                                    type="checkbox" 
-                                    id={`working-${item.id}`}
-                                    checked={item.isWorking} 
-                                    onChange={(e) => handleScheduleChange(item.id, 'isWorking', e.target.checked)}
-                                />
-                                <label htmlFor={`working-${item.id}`}>Trabalha neste dia</label>
-                            </div>
-                            <button className="save-schedule-btn" onClick={() => handleSave(item)}>Salvar</button>
+                <div className="pet-profile-container">
+                    <VetConsultasNav />
+                    <div className="calendario-container">
+                        <div className="vet-page-header" style={{border: 'none', textAlign: 'center'}}>
+                            <h1>Minha Agenda de Atendimentos</h1>
+                            <h2 className="month-title">{currentDate.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</h2>
                         </div>
-                    ))}
+                        <div className="calendario-grid">
+                            <div className="dia-semana">Seg</div>
+                            <div className="dia-semana">Ter</div>
+                            <div className="dia-semana">Qua</div>
+                            <div className="dia-semana">Qui</div>
+                            <div className="dia-semana">Sex</div>
+                            <div className="dia-semana">Sáb</div>
+                            <div className="dia-semana">Dom</div>
+                            {loading ? <p className="loading-message">Carregando calendário...</p> : renderCalendar()}
+                        </div>
+                    </div>
                 </div>
             </main>
             <Footer />
@@ -102,4 +91,4 @@ const WorkSchedule = () => {
     );
 };
 
-export default WorkSchedule;
+export default VetSchedule;

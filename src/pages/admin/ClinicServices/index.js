@@ -16,10 +16,8 @@ const specialityOptions = [
 const ClinicServices = () => {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
-    
     const [editingId, setEditingId] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
-    
     const initialFormData = { name: '', description: '', price: '', isMedicalService: 'false', speciality: 'ESTETICA' };
     const [formData, setFormData] = useState(initialFormData);
 
@@ -31,6 +29,7 @@ const ClinicServices = () => {
         } catch (err) {
             toast.error('Falha ao buscar os serviços da clínica.');
             console.error(err);
+        
         } finally {
             setLoading(false);
         }
@@ -42,24 +41,29 @@ const ClinicServices = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        
         let updatedData = { ...formData, [name]: value };
 
-        if (name === 'isMedicalService' && value === 'false') {
-            updatedData.speciality = 'ESTETICA';
+        // --- CORREÇÃO DA LÓGICA AQUI ---
+        if (name === 'isMedicalService') {
+            if (value === 'false') {
+                // Se for serviço geral, força a especialidade para ESTETICA
+                updatedData.speciality = 'ESTETICA';
+            } else {
+                // Se for serviço médico, define um padrão médico válido
+                updatedData.speciality = 'CLINICO_GERAL';
+            }
         }
+        // --- FIM DA CORREÇÃO ---
 
         setFormData(updatedData);
     };
 
     const handleSave = async (e) => {
         e.preventDefault();
-        
         const payload = {
             ...formData,
             isMedicalService: formData.isMedicalService === 'true'
         };
-
         try {
             if (editingId) {
                 await api.put(`/admin/clinic-services/${editingId}`, payload);
@@ -73,7 +77,7 @@ const ClinicServices = () => {
         } catch (err) {
             const errorMsg = err.response?.data?.message || 'Erro ao salvar o serviço.';
             toast.error(errorMsg);
-            console.error(err.response?.data || err);
+            console.error(err.response || err);
         }
     };
 
@@ -125,19 +129,20 @@ const ClinicServices = () => {
                 </div>
 
                 {(isCreating || editingId) && (
-                    <div className="form-container">
+                     <div className="form-container">
                         <h3>{editingId ? 'Editando Serviço' : 'Novo Serviço'}</h3>
                         <form onSubmit={handleSave}>
                             <div className="form-row">
                                 <input name="name" value={formData.name} onChange={handleInputChange} placeholder="Nome do Serviço" required />
                                 <input name="price" type="number" value={formData.price} onChange={handleInputChange} placeholder="Preço (ex: 150.00)" required step="0.01" />
                             </div>
+    
                             <div className="form-row">
                                 <select name="isMedicalService" value={formData.isMedicalService} onChange={handleInputChange} required>
                                     <option value="false">Serviço Geral / Estética</option>
                                     <option value="true">Serviço Médico (Consulta)</option>
                                 </select>
-                                
+                            
                                 <select name="speciality" value={formData.speciality} onChange={handleInputChange} required disabled={formData.isMedicalService === 'false'}>
                                     {formData.isMedicalService === 'false' ? (
                                         <option value="ESTETICA">Estética</option>
@@ -194,6 +199,4 @@ const ClinicServices = () => {
     );
 };
 
-// --- CORREÇÃO AQUI ---
-// A linha de exportação agora está limpa e correta.
 export default ClinicServices;

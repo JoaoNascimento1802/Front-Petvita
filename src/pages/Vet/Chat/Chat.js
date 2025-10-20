@@ -6,7 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { IoSend } from 'react-icons/io5';
 import { firestore } from '../../../services/firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import '../css/styles.css'; 
+import '../css/styles.css';
 
 const VetChat = () => {
     const { user, loading: authLoading } = useAuth();
@@ -18,8 +18,6 @@ const VetChat = () => {
     const [newMessage, setNewMessage] = useState('');
     const [loadingConversations, setLoadingConversations] = useState(true);
     const [loadingMessages, setLoadingMessages] = useState(false);
-
-    // Estados para notificações
     const [allNotifications, setAllNotifications] = useState([]);
     const [unreadConversations, setUnreadConversations] = useState(new Set());
 
@@ -34,7 +32,7 @@ const VetChat = () => {
                     api.get('/notifications')
                 ]);
 
-                const activeConversations = convResponse.data.filter(c => ['AGENDADA', 'FINALIZADA'].includes(c.status));
+                const activeConversations = convResponse.data.filter(c => ['PENDENTE', 'AGENDADA', 'FINALIZADA'].includes(c.status));
                 setConversations(activeConversations);
                 
                 const unreadNotifs = notifResponse.data.filter(n => !n.read && n.consultationId);
@@ -65,14 +63,13 @@ const VetChat = () => {
         });
         return () => unsubscribe();
     }, [activeConversation]);
-    
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
     const handleConversationClick = (conv) => {
         setActiveConversation(conv);
-
         if (unreadConversations.has(conv.id)) {
             const notificationsToClear = allNotifications.filter(n => n.consultationId === conv.id);
             notificationsToClear.forEach(n => api.post(`/notifications/${n.id}/read`));
@@ -108,7 +105,7 @@ const VetChat = () => {
                 <div className="chat-sidebar">
                     <div className="sidebar-header"><h3>Conversas</h3></div>
                     <div className="contact-list">
-                        {loadingConversations ? <p>Carregando...</p> : conversations.map(conv => (
+                        {loadingConversations ? <p className="loading-message">Carregando...</p> : conversations.map(conv => (
                             <div 
                                 key={conv.id} 
                                 className={`contact-item ${activeConversation?.id === conv.id ? 'active' : ''}`}
@@ -134,7 +131,7 @@ const VetChat = () => {
                             <div className="message-area">
                                 {loadingMessages ? <p>Carregando mensagens...</p> : messages.map(msg => (
                                     <div key={msg.id} className={`message ${msg.senderId === user.id ? 'sent' : 'received'}`}>
-                                        {msg.content}
+                                        <strong>{msg.senderName}: </strong>{msg.content}
                                     </div>
                                 ))}
                                 <div ref={messagesEndRef} />
