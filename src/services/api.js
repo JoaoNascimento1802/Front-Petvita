@@ -3,7 +3,7 @@ import axios from 'axios';
 // A configuração do Axios cria uma instância base para todas as chamadas à API.
 const api = axios.create({
   // GARANTA QUE ESTA LINHA APONTE PARA SEU BACKEND LOCAL
-  baseURL: 'http://localhost:8080', // Porta padrão do Spring Boot
+  baseURL: 'videogamee-audkgzdjceemames.brazilsouth-01.azurewebsites.net', // Porta padrão do Spring Boot
 });
 
 // Este interceptor adiciona o token JWT a cada requisição, se ele existir no localStorage.
