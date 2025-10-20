@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import HeaderEmployee from '../../../components/HeaderEmployee';
-import Footer from '../../../components/Footer';
-import api from '../../../services/api';
+import HeaderEmployee from '../../components/HeaderEmployee';
+import Footer from '../../components/Footer';
+import api from '../../services/api';
 import { toast } from 'react-toastify';
 import './css/styles.css';
 
-// Modal de Check-in (componente interno)
+// Modal para o Check-in
 const CheckInModal = ({ consulta, onClose, onCheckInSuccess }) => {
     const [triageData, setTriageData] = useState({
         weightKg: '',
         temperatureCelsius: '',
         mainComplaint: ''
     });
-    const [isSaving, setIsSaving] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -21,15 +20,12 @@ const CheckInModal = ({ consulta, onClose, onCheckInSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsSaving(true);
         try {
             await api.post(`/api/employee/consultations/${consulta.id}/check-in`, triageData);
             toast.success(`Check-in para ${consulta.petName} realizado com sucesso!`);
             onCheckInSuccess();
         } catch (error) {
             toast.error(error.response?.data?.message || "Erro ao realizar check-in.");
-        } finally {
-            setIsSaving(false);
         }
     };
 
@@ -51,10 +47,8 @@ const CheckInModal = ({ consulta, onClose, onCheckInSuccess }) => {
                         <textarea name="mainComplaint" rows="3" required onChange={handleChange}></textarea>
                     </div>
                     <div className="modal-actions">
-                        <button type="button" className="btn-cancel" onClick={onClose} disabled={isSaving}>Cancelar</button>
-                        <button type="submit" className="btn-save" disabled={isSaving}>
-                            {isSaving ? 'Salvando...' : 'Confirmar Check-in'}
-                        </button>
+                        <button type="button" className="btn-cancel" onClick={onClose}>Cancelar</button>
+                        <button type="submit" className="btn-save">Confirmar Check-in</button>
                     </div>
                 </form>
             </div>
@@ -62,24 +56,16 @@ const CheckInModal = ({ consulta, onClose, onCheckInSuccess }) => {
     );
 };
 
-
 const EmployeeDashboard = () => {
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedConsulta, setSelectedConsulta] = useState(null);
 
     const fetchSchedules = async () => {
-        setLoading(true);
         try {
-            // Usamos o endpoint de admin, pois o funcionário precisa ver todas as consultas do dia.
-            const response = await api.get('/admin/consultations');
+            const response = await api.get('/admin/consultations'); // Usamos o endpoint de admin que retorna todas
             const today = new Date().toISOString().slice(0, 10);
-            
-            // Filtra para mostrar apenas consultas AGENDADAS para hoje
-            const todaySchedules = response.data
-                .filter(c => c.consultationdate === today && c.status === 'AGENDADA')
-                .sort((a, b) => a.consultationtime.localeCompare(b.consultationtime)); // Ordena por hora
-
+            const todaySchedules = response.data.filter(c => c.consultationdate === today && c.status === 'AGENDADA');
             setSchedules(todaySchedules);
         } catch (error) {
             toast.error("Não foi possível carregar os agendamentos do dia.");
@@ -95,7 +81,7 @@ const EmployeeDashboard = () => {
 
     const handleCheckInSuccess = () => {
         setSelectedConsulta(null);
-        fetchSchedules(); // Recarrega a lista para atualizar o status da consulta
+        fetchSchedules(); // Recarrega a lista para atualizar o status
     };
 
     return (
@@ -107,24 +93,24 @@ const EmployeeDashboard = () => {
                     <p>Aqui estão as consultas agendadas para hoje.</p>
                 </div>
                 {loading ? (
-                    <p className="loading-message">Carregando agendamentos...</p>
+                    <p>Carregando agendamentos...</p>
                 ) : (
                     <div className="schedule-list">
                         {schedules.length > 0 ? schedules.map(item => (
                             <div key={item.id} className="schedule-card">
-                                <div className="card-datetime">
-                                    {item.consultationtime}
-                                </div>
                                 <div className="card-pet-info">
                                     <div className="pet-avatar-placeholder">{item.petName.charAt(0)}</div>
                                     <div>
                                         <div className="card-pet-name">{item.petName}</div>
-                                        <small>Tutor: {item.clientName || item.userName}</small>
+                                        <small>Tutor: {item.userName}</small>
                                     </div>
                                 </div>
                                 <div className="card-service-name">
                                     {item.serviceName}
                                     <small>Com Dr(a). {item.veterinaryName}</small>
+                                </div>
+                                <div className="card-datetime">
+                                    {item.consultationtime}
                                 </div>
                                 <div className="card-actions">
                                     <button className="action-btn complete" onClick={() => setSelectedConsulta(item)}>Check-in</button>

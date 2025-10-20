@@ -31,9 +31,10 @@ import AdminRelatorios from '../pages/admin/Relatorios/Relatorios';
 import AdminPerfil from '../pages/admin/Perfil/Perfil';
 import AdminChat from '../pages/admin/Chat/Chat';
 import ClinicServices from "../pages/admin/ClinicServices";
-// CORREÇÃO: Import da lista de funcionários
 import EmployeeList from "../pages/admin/EmployeeList";
-import EmployeeDashboard from "../pages/Employee/Dashboard";
+
+// --- NOVO/MODIFICADO ---
+import EmployeeDashboard from "../pages/Employee/Dashboard"; // Import do dashboard do funcionário
 
 // Imports que podem estar faltando
 import ModalRegisterUser from "../components/ModalRegisterUser";
@@ -81,7 +82,6 @@ export default function AppRoutes() {
       <Route path="/admin/dashboard" element={<PrivateRoute requiredRole="ADMIN"><AdminDashboard /></PrivateRoute>} />
       <Route path="/admin/veterinarios" element={<PrivateRoute requiredRole="ADMIN"><VetList /></PrivateRoute>} />
       <Route path="/admin/pacientes" element={<PrivateRoute requiredRole="ADMIN"><PacientesList /></PrivateRoute>} />
-      {/* CORREÇÃO: Rota para gerenciar funcionários */}
       <Route path="/admin/funcionarios" element={<PrivateRoute requiredRole="ADMIN"><EmployeeList /></PrivateRoute>} />
       <Route path="/admin/consultas" element={<PrivateRoute requiredRole="ADMIN"><AdminConsultas /></PrivateRoute>} />
       <Route path="/admin/relatorios" element={<PrivateRoute requiredRole="ADMIN"><AdminRelatorios /></PrivateRoute>} />
@@ -89,9 +89,8 @@ export default function AppRoutes() {
       <Route path="/admin/chat" element={<PrivateRoute requiredRole="ADMIN"><AdminChat /></PrivateRoute>} />
       <Route path="/admin/services" element={<PrivateRoute requiredRole="ADMIN"><ClinicServices /></PrivateRoute>} />
 
-      {/* === Rota do Funcionário (EMPLOYEE) === */}
+      {/* === Rota do Funcionário (EMPLOYEE) - CORRIGIDA E COMPLETA === */}
       <Route path="/employee/dashboard" element={<PrivateRoute requiredRole="EMPLOYEE"><EmployeeDashboard /></PrivateRoute>} />
     </Routes>
   );
 }
-

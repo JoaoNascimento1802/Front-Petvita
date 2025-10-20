@@ -43,7 +43,7 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
     padding: 20px;
     display: grid;
-    grid-template-columns: 1fr 3fr 3fr 1.5fr; /* Colunas para Hora, Pet, Serviço, Ações */
+    grid-template-columns: 2fr 3fr 2fr 1.5fr;
     align-items: center;
     gap: 15px;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -52,13 +52,6 @@
 .schedule-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.card-datetime {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #8D7EFB;
-    text-align: center;
 }
 
 .card-pet-info {
@@ -87,15 +80,20 @@
     font-size: 1.1rem;
 }
 
-.card-pet-info small, .card-service-name small {
+.card-pet-info small {
     color: #777;
     font-size: 0.85rem;
-    display: block;
 }
 
 .card-service-name {
     font-weight: 500;
     color: #555;
+}
+
+.card-datetime {
+    font-size: 0.95rem;
+    color: #444;
+    text-align: center;
 }
 
 .card-actions {
@@ -105,13 +103,12 @@
 }
 
 .action-btn {
-    padding: 10px 20px;
+    padding: 8px 16px;
     border: none;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
-    font-family: 'Poppins', sans-serif;
 }
 
 .action-btn.complete {
@@ -122,89 +119,19 @@
     background-color: #45a049;
 }
 
-.no-data-message, .loading-message {
+.action-btn.cancel {
+    background-color: #f44336;
+    color: white;
+}
+.action-btn.cancel:hover {
+    background-color: #d32f2f;
+}
+
+.no-data-message {
     text-align: center;
     padding: 40px;
     background-color: #fff;
     border-radius: 12px;
     color: #777;
     font-size: 1.1rem;
-}
-
-/* Estilos para o Modal de Check-in */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-
-.modal-content {
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-}
-
-.modal-content h2 {
-    margin-top: 0;
-    font-family: 'Poppins', sans-serif;
-}
-
-.form-group-modal {
-    margin-bottom: 15px;
-}
-
-.form-group-modal label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #555;
-}
-
-.form-group-modal input, .form-group-modal textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.btn-cancel {
-    background-color: #f1f1f1;
-    color: #333;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.btn-save {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
 }

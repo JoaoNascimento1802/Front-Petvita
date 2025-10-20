@@ -42,11 +42,11 @@
   transition: color 0.3s ease;
 }
 
-.nav a.active, .nav a:hover {
+.nav a.active, .nav a:hover, .nav .nav_link.active {
   color: #B77EFF;
 }
 
-.nav a.active::after {
+.nav a.active::after, .nav .nav_link.active::after {
   content: '';
   position: absolute;
   left: 0;
