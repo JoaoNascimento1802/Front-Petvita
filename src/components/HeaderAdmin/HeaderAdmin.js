@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import NotificationDropdown from '../NotificationDropdown';
 import logo from '../../assets/images/Header/LogoPet_vita(Atualizado).png';
-import profileIcon from '../../assets/images/Header/perfilIcon.png'; // Ícone padrão como fallback
+import profileIcon from '../../assets/images/Header/perfilIcon.png';
 import '../css/Header.css';
 import { BsBellFill, BsChatDots } from 'react-icons/bs';
 
@@ -14,7 +14,6 @@ const HeaderAdmin = () => {
     const [notificationCount, setNotificationCount] = useState(0);
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-
     const profileRef = useRef(null);
     const notificationRef = useRef(null);
 
@@ -58,17 +57,17 @@ const HeaderAdmin = () => {
             </div>
             
             <nav className="nav nav-center">
-                <NavLink to="/admin/dashboard" className="nav_link">Home</NavLink>
+                <NavLink to="/admin/dashboard" className="nav_link">Painel</NavLink>
+                <NavLink to="/admin/consultas" className="nav_link">Consultas</NavLink>
                 <NavLink to="/admin/veterinarios" className="nav_link">Veterinários</NavLink>
-                {/* Link para Funcionários foi reintroduzido aqui */}
                 <NavLink to="/admin/funcionarios" className="nav_link">Funcionários</NavLink>
                 <NavLink to="/admin/pacientes" className="nav_link">Pacientes</NavLink>
-                <NavLink to="/admin/consultas" className="nav_link">Consultas</NavLink>
-                <NavLink to="/admin/relatorios" className="nav_link">Relatórios</NavLink>
                 <NavLink to="/admin/services" className="nav_link">Serviços</NavLink>
+                <NavLink to="/admin/relatorios" className="nav_link">Relatórios</NavLink>
             </nav>
 
             <div className="icons-container">
+                {/* Ícone de Chat adicionado para acesso rápido */}
                 <NavLink to="/admin/chat" className="header-icon" title="Chat"><BsChatDots size={26} /></NavLink>
                 
                 <div className="notification-icon-wrapper" ref={notificationRef}>
@@ -84,7 +83,7 @@ const HeaderAdmin = () => {
                         <img 
                           src={user?.imageurl || profileIcon} 
                           alt="Perfil"
-                          onError={(e) => { e.target.onerror = null; e.target.src = profileIcon; }} // Fallback se a URL da imagem quebrar
+                          onError={(e) => { e.target.onerror = null; e.target.src = profileIcon; }}
                         />
                     </div>
                     {showProfileDropdown && (
@@ -100,4 +99,3 @@ const HeaderAdmin = () => {
 };
 
 export default HeaderAdmin;
-

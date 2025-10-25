@@ -64,10 +64,8 @@ const VetSchedule = () => {
 
     return (
         <div className="pet-profile-page">
-            <HeaderVet />
             <main className="vet-content-full">
                 <div className="pet-profile-container">
-                    <VetConsultasNav />
                     <div className="calendario-container">
                         <div className="vet-page-header" style={{border: 'none', textAlign: 'center'}}>
                             <h1>Minha Agenda de Atendimentos</h1>
@@ -86,7 +84,6 @@ const VetSchedule = () => {
                     </div>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 };

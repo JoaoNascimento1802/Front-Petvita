@@ -1,70 +1,59 @@
 import React from 'react';
-import { BrowserRouter, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import AppRoutes from './routes/index.js';
+import AppRoutes from './routes';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Importa TODOS os headers
-import HeaderSemCadastro from './components/Header_sem_cadastro/index.js';
-import HeaderComCadastro from './components/Header_com_cadastro/index.js';
-import HeaderVet from './components/HeaderVet/HeaderVet.js';
-import HeaderAdmin from './components/HeaderAdmin/HeaderAdmin.js';
-import HeaderEmployee from './components/HeaderEmployee/index.js'; // NOVO: Import do Header do Funcionário
+// 1. Importe TODOS os seus componentes de header
+import HeaderSemCadastro from './components/Header_sem_cadastro';
+import HeaderComCadastro from './components/Header_com_cadastro';
+import HeaderAdmin from './components/HeaderAdmin/HeaderAdmin';
+import HeaderVet from './components/HeaderVet/HeaderVet';
+import HeaderEmployee from './components/HeaderEmployee';
 
-const AppLayout = () => {
-  const { user } = useAuth();
-  const location = useLocation();
+// 2. Crie um componente controlador para escolher o header correto
+const HeaderController = () => {
+    const { user, loading } = useAuth();
 
-  const renderHeader = () => {
-    const path = location.pathname;
-
-    if (path.startsWith('/admin')) {
-      return user?.role === 'ADMIN' ? <HeaderAdmin /> : null;
+    // Enquanto o estado de autenticação está carregando, não mostre nenhum header
+    if (loading) {
+        return null;
     }
 
-    if (path.startsWith('/vet')) {
-      return user?.role === 'VETERINARY' ? <HeaderVet /> : null;
+    // Se não houver usuário, mostre o header de visitante
+    if (!user) {
+        return <HeaderSemCadastro />;
     }
 
-    // NOVO: Renderiza o header do funcionário para as rotas /employee
-    if (path.startsWith('/employee')) {
-      return user?.role === 'EMPLOYEE' ? <HeaderEmployee /> : null;
+    // Use um switch para renderizar o header correto com base na role do usuário
+    switch (user.role) {
+        case 'ADMIN':
+            return <HeaderAdmin />;
+        case 'VETERINARY':
+            return <HeaderVet />;
+        case 'EMPLOYEE':
+            return <HeaderEmployee />;
+        case 'USER':
+        default:
+            return <HeaderComCadastro />;
     }
-    
-    // Para todas as outras rotas, decide entre o header de usuário logado e deslogado
-    return user ? <HeaderComCadastro /> : <HeaderSemCadastro />;
-  };
-
-  return (
-    <div className="App">
-      {renderHeader()}
-      {/* O conteúdo das rotas é renderizado pelo AppRoutes */}
-    </div>
-  );
 };
 
-
+// 3. Estruture o App para usar o HeaderController de forma centralizada
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppLayout />
-        <AppRoutes />
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
-      </BrowserRouter>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <ToastContainer autoClose={3000} hideProgressBar={false} position="top-right" />
+        {/* O HeaderController agora gerencia qual header é exibido para toda a aplicação */}
+        <HeaderController />
+        {/* Adiciona um padding global para o conteúdo não ficar atrás do header fixo */}
+        <div style={{ paddingTop: '90px' }}> 
+          <AppRoutes />
+        </div>
+      </AuthProvider>
+    </Router>
   );
 }
 

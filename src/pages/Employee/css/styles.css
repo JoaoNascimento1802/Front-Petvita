@@ -1,36 +1,39 @@
-.admin-page {
+.employee-page {
     background-color: #f9f9f9;
 }
-.admin-content {
-    max-width: 1200px;
+
+.employee-content {
+    max-width: 1100px;
     margin: 0 auto;
     padding: 20px;
 }
-.admin-header {
+
+.employee-header {
     text-align: center;
     margin-bottom: 30px;
 }
-.admin-header h1 {
+
+.employee-header h1 {
     font-family: 'Poppins', sans-serif;
     color: #333;
     font-size: 2.2rem;
 }
-.admin-header p {
+
+.employee-header p {
     color: #666;
     font-size: 1.1rem;
 }
-.admin-container {
+
+.employee-container {
     background-color: #fff;
     border-radius: 15px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.07);
     padding: 30px;
 }
-.admin-main-content {
-    padding-top: 30px;
-}
-.admin-main-content h2 {
-    font-family: 'Poppins', sans-serif;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 15px;
+
+.loading-message, .no-data-message {
+    text-align: center;
+    padding: 40px;
+    color: #777;
+    font-size: 1.1rem;
 }

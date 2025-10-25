@@ -45,6 +45,12 @@ import ConsulCompleted from "../pages/Consultations/ConsulCompleted";
 import ConsulCompleteDetails from "../pages/Consultations/ConsulCompletedDetails";
 import ConsulDetails from "../pages/Consultations/ConsulDetails";
 
+import EmployeeServicos from "../pages/Employee/Servicos"; // CORRIGIDO
+import EmployeeAgenda from "../pages/Employee/Agenda";
+import EmployeeChat from "../pages/Employee/Chat";
+import EmployeePerfil from "../pages/Employee/Perfil";
+import EmployeeDetalhesServico from "../pages/Employee/DetalhesServico";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -91,6 +97,14 @@ export default function AppRoutes() {
 
       {/* === Rota do Funcionário (EMPLOYEE) - CORRIGIDA E COMPLETA === */}
       <Route path="/employee/dashboard" element={<PrivateRoute requiredRole="EMPLOYEE"><EmployeeDashboard /></PrivateRoute>} />
+      <Route path="/employee/servicos" element={<PrivateRoute requiredRole="EMPLOYEE"><EmployeeServicos /></PrivateRoute>} />
+      <Route path="/employee/agenda" element={<PrivateRoute requiredRole="EMPLOYEE"><EmployeeAgenda /></PrivateRoute>} />
+      <Route path="/employee/chat" element={<PrivateRoute requiredRole="EMPLOYEE"><EmployeeChat /></PrivateRoute>} />
+      <Route path="/employee/perfil" element={<PrivateRoute requiredRole="EMPLOYEE"><EmployeePerfil /></PrivateRoute>} />
+      <Route path="/employee/servicos/:scheduleId" element={<PrivateRoute requiredRole="EMPLOYEE"><EmployeeDetalhesServico /></PrivateRoute>} />
+
+      {/* Rota de detalhes da consulta, acessível pelo funcionário */}
+      <Route path="/vet/consultas/:consultaId" element={<PrivateRoute requiredRole="EMPLOYEE"><VetDetalhesConsulta /></PrivateRoute>} />
     </Routes>
   );
 }

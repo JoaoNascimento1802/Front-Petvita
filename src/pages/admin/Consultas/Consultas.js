@@ -1,33 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import HeaderAdmin from '../../../components/HeaderAdmin/HeaderAdmin';
+import React, { useState, useEffect, useCallback } from 'react';
 import Footer from '../../../components/Footer';
 import api from '../../../services/api';
 import { FaEdit, FaTrash, FaSave, FaTimes } from 'react-icons/fa';
 import './Consultas.css';
 
-// NOVO: Array com as descrições das especialidades para o filtro
-const specialityLabels = [ "Clínico Geral", "Anestesiologia", "Cardiologia", "Dermatologia", "Endocrinologia",
-    "CLINICO_GERAL", "ANESTESIOLOGIA", "CARDIOLOGIA", "DERMATOLOGIA", "ENDOCRINOLOGIA",
-    "GASTROENTEROLOGIA", "NEUROLOGIA", "NUTRICAO", "OFTALMOLOGIA", "ONCOLOGIA",
-    "ORTOPEDIA", "REPRODUCAO_ANIMAL", "PATOLOGIA", "CIRURGIA_GERAL", "CIRURGIA_ORTOPEDICA",
-    "ODONTOLOGIA", "ZOOTECNIA", "EXOTICOS", "ACUPUNTURA", "FISIOTERAPIA", "IMAGINOLOGIA"
+// Lista de especialidades para o filtro
+const specialityLabels = [
+    "Clínico Geral", "Anestesiologia", "Cardiologia", "Dermatologia", "Endocrinologia",
+    "Gastroenterologia", "Neurologia", "Nutricao", "Oftalmologia", "Oncologia",
+    "Ortopedia", "Reproducao Animal", "Patologia", "Cirurgia Geral", "Cirurgia Ortopedica",
+    "Odontologia", "Zootecnia", "Exoticos", "Acupuntura", "Fisioterapia", "Imaginologia"
 ];
 
-const Consultas = () => {
+const Consultas = ({ isEmployeeView = false }) => {
     const [consultas, setConsultas] = useState([]);
     const [filteredConsultas, setFilteredConsultas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
     const [editingId, setEditingId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
-
     const [userFilter, setUserFilter] = useState('');
     const [vetFilter, setVetFilter] = useState('');
     const [specialtyFilter, setSpecialtyFilter] = useState('');
     const [dateFilter, setDateFilter] = useState('');
 
-    const fetchConsultas = async () => {
+    const fetchConsultas = useCallback(async () => {
         setLoading(true);
         try {
             const response = await api.get('/admin/consultations');
@@ -39,22 +36,22 @@ const Consultas = () => {
         } finally {
             setLoading(false);
         }
-    };
-    
-    useEffect(() => {
-        fetchConsultas();
     }, []);
 
     useEffect(() => {
+        fetchConsultas();
+    }, [fetchConsultas]);
+
+    useEffect(() => {
         let result = consultas.filter(c =>
-            (c.userName?.toLowerCase() || c.petName?.toLowerCase() || '').includes(userFilter.toLowerCase()) &&
-            (c.veterinaryName?.toLowerCase() || '').includes(vetFilter.toLowerCase()) && // ALTERAÇÃO: Lógica de filtro para o select
+            (c.userName?.toLowerCase().includes(userFilter.toLowerCase()) || c.petName?.toLowerCase().includes(userFilter.toLowerCase())) &&
+            (c.veterinaryName?.toLowerCase().includes(vetFilter.toLowerCase())) &&
             (specialtyFilter ? c.speciality === specialtyFilter : true) &&
             (dateFilter ? c.consultationdate === dateFilter : true)
         );
         setFilteredConsultas(result);
     }, [userFilter, vetFilter, specialtyFilter, dateFilter, consultas]);
-    
+
     const handleEditClick = (consulta) => {
         setEditingId(consulta.id);
         setEditFormData({
@@ -84,17 +81,17 @@ const Consultas = () => {
         }
     };
 
-    const handleDelete = (id) => alert(`Lógica para deletar consulta ${id} a ser implementada.`);
+    const handleDelete = (id) => alert(`Lógica para deletar consulta ${id} ainda não implementada.`);
 
     return (
-        <div className="admin-page">
-            <HeaderAdmin />
-            <main className="admin-content">
-                <div className="admin-page-header"><h1>Gerenciar Consultas</h1></div>
+        <div className="admin-page" style={{ paddingTop: 0, background: 'none' }}>
+            <main className="admin-content" style={{ paddingTop: 0 }}>
+                {!isEmployeeView && (
+                    <div className="admin-page-header"><h1>Gerenciar Consultas</h1></div>
+                )}
                 <div className="admin-filters">
                     <input type="text" placeholder="Filtrar por paciente/pet..." value={userFilter} onChange={e => setUserFilter(e.target.value)} />
                     <input type="text" placeholder="Filtrar por veterinário..." value={vetFilter} onChange={e => setVetFilter(e.target.value)} />
-                    {/* ALTERAÇÃO: Input de texto substituído por um select */}
                     <select value={specialtyFilter} onChange={e => setSpecialtyFilter(e.target.value)}>
                         <option value="">Todas as Especialidades</option>
                         {specialityLabels.map(spec => (
@@ -148,7 +145,6 @@ const Consultas = () => {
                     </div>
                 )}
             </main>
-            <Footer />
         </div>
     );
 };

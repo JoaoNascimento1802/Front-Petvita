@@ -21,8 +21,10 @@ const HeaderEmployee = () => {
         <NavLink to="/employee/dashboard"><img src={logo} alt="Pet Vita Logo" /></NavLink>
       </div>
       <nav className="nav nav-center">
-        <NavLink to="/employee/dashboard" className="nav_link">Painel Principal</NavLink>
-        {/* Futuramente, adicione mais links aqui (ex: /employee/clientes) */}
+        <NavLink to="/employee/dashboard" className="nav_link">Painel</NavLink>
+        <NavLink to="/employee/servicos" className="nav_link">Serviços</NavLink> {/* CORRIGIDO */}
+        <NavLink to="/employee/agenda" className="nav_link">Agenda</NavLink>
+        <NavLink to="/employee/chat" className="nav_link">Chat</NavLink>
       </nav>
       <div className="icons-container">
         <div className="profile-icon-container">
@@ -35,8 +37,7 @@ const HeaderEmployee = () => {
           </div>
           {showDropdown && (
             <div className="dropdown-menu">
-              {/* Futuramente, pode ter uma página de perfil para o funcionário */}
-              {/* <NavLink to="/employee/perfil" className="dropdown-item">Meu Perfil</NavLink> */}
+              <NavLink to="/employee/perfil" className="dropdown-item">Meu Perfil</NavLink>
               <button onClick={handleLogout} className="dropdown-item" style={{border: 'none', width: '100%', textAlign: 'left', background: 'none', cursor: 'pointer'}}>Sair</button>
             </div>
           )}

@@ -39,7 +39,7 @@ const Consultas = () => {
         try {
             await actionFn();
             toast.success(successMsg);
-            fetchConsultas(); // Recarrega a lista após a ação
+            fetchConsultas();
         } catch (err) {
             toast.error(errorMsg);
             console.error(err);
@@ -48,20 +48,20 @@ const Consultas = () => {
 
     const handleAccept = (e, id) => {
         e.stopPropagation();
-        handleAction(() => api.post(`/consultas/${id}/accept`), 'Consulta aceita com sucesso!', 'Erro ao aceitar consulta.');
+        handleAction(() => api.post(`/consultas/${id}/accept`), 'Consulta aceita!', 'Erro ao aceitar consulta.');
     };
 
     const handleDecline = (e, id) => {
         e.stopPropagation();
         if (window.confirm('Tem certeza que deseja recusar esta consulta?')) {
-            handleAction(() => api.post(`/consultas/${id}/reject`), 'Consulta recusada com sucesso!', 'Erro ao recusar consulta.');
+            handleAction(() => api.post(`/consultas/${id}/reject`), 'Consulta recusada.', 'Erro ao recusar consulta.');
         }
     };
     
     const handleCancel = (e, id) => {
         e.stopPropagation();
         if (window.confirm('Tem certeza que deseja CANCELAR esta consulta agendada?')) {
-            handleAction(() => api.post(`/consultas/${id}/cancel`), 'Consulta cancelada com sucesso!', 'Erro ao cancelar consulta.');
+            handleAction(() => api.post(`/consultas/${id}/cancel`), 'Consulta cancelada.', 'Erro ao cancelar consulta.');
         }
     };
     
@@ -78,7 +78,6 @@ const Consultas = () => {
             agendadas: allConsultas.filter(c => c.status === 'AGENDADA'),
             historico: allConsultas.filter(c => ['FINALIZADA', 'CANCELADA', 'RECUSADA'].includes(c.status)),
         };
-
         const dataToRender = dataMap[activeTab] || [];
 
         if (dataToRender.length === 0) {
