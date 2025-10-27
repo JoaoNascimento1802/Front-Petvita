@@ -1,3 +1,4 @@
+// src/pages/Consultations/ConsulPending/index.js
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import HeaderComCadastro from '../../../components/Header_com_cadastro';
@@ -24,24 +25,30 @@ const ConsulPending = () => {
     }, [searchParams]);
 
     useEffect(() => {
-        if (!user) { setLoading(false); return; };
+        if (!user) { 
+            setLoading(false); 
+            return; 
+        };
         
         const fetchConsultas = async () => {
             setLoading(true);
             try {
+                // CORREÇÃO: Chamada ao endpoint correto para o usuário logado
                 const response = await api.get('/consultas/my-consultations');
                 setAllConsultas(response.data);
             } catch (err) {
+                console.error("Erro ao buscar consultas:", err);
                 setError('Falha ao buscar as suas consultas.');
             } finally {
                 setLoading(false);
             }
         };
+
         fetchConsultas();
     }, [user]);
 
     const renderContent = () => {
-        if (loading) return <p style={{textAlign: 'center', padding: '20px'}}>A carregar...</p>;
+        if (loading) return <p style={{textAlign: 'center', padding: '20px'}}>Carregando...</p>;
         if (error) return <p className="error-message">{error}</p>;
 
         if (activeTab === 'calendario') {
@@ -53,7 +60,9 @@ const ConsulPending = () => {
                 const diasNoMes = new Date(ano, mes + 1, 0).getDate();
                 const offsetPrimeiroDia = (primeiroDiaDoMes === 0) ? 6 : primeiroDiaDoMes - 1;
 
-                for (let i = 0; i < offsetPrimeiroDia; i++) { dias.push(<div key={`vazio-${i}`} className="dia-celula vazio"></div>); }
+                for (let i = 0; i < offsetPrimeiroDia; i++) { 
+                    dias.push(<div key={`vazio-${i}`} className="dia-celula vazio"></div>); 
+                }
 
                 for (let dia = 1; dia <= diasNoMes; dia++) {
                     const consultasDoDia = allConsultas.filter(c => new Date(c.consultationdate).getUTCDate() === dia && new Date(c.consultationdate).getUTCMonth() === mes);
@@ -72,6 +81,7 @@ const ConsulPending = () => {
                 }
                 return dias;
             };
+
             return (
                 <div className="calendario-container">
                     <div className="calendario-grid">{renderizarDias()}</div>
@@ -84,7 +94,7 @@ const ConsulPending = () => {
             agendadas: allConsultas.filter(c => c.status === 'AGENDADA'),
             historico: allConsultas.filter(c => ['FINALIZADA', 'CANCELADA', 'RECUSADA'].includes(c.status)),
         };
-
+        
         const dataToRender = dataMap[activeTab] || [];
 
         if (dataToRender.length === 0) return <p style={{textAlign: 'center', padding: '20px'}}>Nenhuma consulta encontrada nesta aba.</p>;

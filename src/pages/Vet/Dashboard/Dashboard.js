@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-// A importação do HeaderVet foi REMOVIDA daqui
 import Footer from '../../../components/Footer';
 import api from '../../../services/api';
 import mainImage from '../../../assets/images/Vet/image 56.png';
@@ -16,15 +15,20 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // A primeira chamada para buscar o nome do usuário está correta
                 const userResponse = await api.get('/users/me');
                 setVetName(userResponse.data.username);
 
-                const consultasResponse = await api.get('/consultas/my-consultations');
+                // ===== CORREÇÃO PRINCIPAL AQUI =====
+                // Alterado o endpoint para o correto do veterinário
+                const consultasResponse = await api.get('/consultas/vet/my-consultations');
+                
                 const pendingConsultas = consultasResponse.data.filter(c => c.status === 'PENDENTE');
                 setPendingCount(pendingConsultas.length);
 
             } catch (error) {
                 console.error("Erro ao buscar dados do dashboard:", error);
+                // Adicione uma mensagem de erro mais clara para o usuário, se desejar
             } finally {
                 setLoading(false);
             }
@@ -35,7 +39,7 @@ const Dashboard = () => {
 
     return (
         <div className="vet-dashboard-page">
-            {/* A renderização <HeaderVet /> foi REMOVIDA daqui */}
+            {/* O Header é renderizado pelo componente pai App.js, então não precisa estar aqui */}
             <main className="dashboard-content">
                 <section className="welcome-section">
                     <div className="welcome-text">
