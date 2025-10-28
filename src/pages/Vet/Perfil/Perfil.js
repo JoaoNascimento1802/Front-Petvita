@@ -70,8 +70,12 @@ const VetPerfil = () => {
         setIsSaving(true);
         try {
             const updateDTO = {
-                name: editData.name, email: editData.email, crmv: editData.crmv,
-                specialityenum: editData.specialityenum, phone: editData.phone, rg: editData.rg,
+                name: editData.name,
+                email: editData.email,
+                crmv: editData.crmv,
+                specialityenum: editData.specialityenum,
+                phone: editData.phone,
+                rg: editData.rg,
                 imageurl: imagePreview
             };
             await api.put(`/admin/veterinarians/${vetData.id}`, updateDTO);
@@ -150,7 +154,7 @@ const VetPerfil = () => {
                             </div>
                             <div className="profile-field">
                                 <label>RG</label>
-                                {isEditing ? <input type="text" name="rg" value={editData.rg || ''} onChange={handleInputChange} className="info-field editable" /> : <div className="info-field">{vetData.rg}</div>}
+                                {isEditing ? <input type="text" name="rg" value={editData.rg || ''} onChange={handleInputChange} className="info-field editable" /> : <div className="info-field">{vetData.rg || 'Não informado'}</div>}
                             </div>
                         </div>
                         <div className="profile-row">
