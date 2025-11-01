@@ -4,9 +4,11 @@ import api from '../../../services/api';
 import HeaderVet from '../../../components/HeaderVet/HeaderVet';
 import Footer from '../../../components/Footer';
 import ImageCropper from '../../../components/ImageCropper/ImageCropper';
+import ScheduleDisplay from '../../../components/ScheduleDisplay/ScheduleDisplay';
 import profileIcon from '../../../assets/images/Perfil/perfilIcon.png';
 import { FaPencilAlt } from 'react-icons/fa';
 import '../css/styles.css';
+import { toast } from 'react-toastify';
 
 const specialityOptions = [ "CLINICO_GERAL", "ANESTESIOLOGIA", "CARDIOLOGIA", "DERMATOLOGIA", "ENDOCRINOLOGIA", "GASTROENTEROLOGIA", "NEUROLOGIA", "NUTRICAO", "OFTALMOLOGIA", "ONCOLOGIA", "ORTOPEDIA", "REPRODUCAO_ANIMAL", "PATOLOGIA", "CIRURGIA_GERAL", "CIRURGIA_ORTOPEDICA", "ODONTOLOGIA", "ZOOTECNIA", "EXOTICOS", "ACUPUNTURA", "FISIOTERAPIA", "IMAGINOLOGIA" ];
 
@@ -21,21 +23,30 @@ const VetPerfil = () => {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(profileIcon);
     const [hasChanges, setHasChanges] = useState(false);
+    const [schedules, setSchedules] = useState([]);
+    const [loadingSchedules, setLoadingSchedules] = useState(true);
 
     const fetchVetData = useCallback(async () => {
         if (user) {
             setLoading(true);
+            setLoadingSchedules(true);
             try {
-                const response = await api.get(`/veterinary/me?_t=${new Date().getTime()}`);
-                const combinedData = { ...response.data };
+                const [profileRes, scheduleRes] = await Promise.all([
+                    api.get(`/veterinary/me?_t=${new Date().getTime()}`),
+                    api.get('/api/schedules/vet/my-schedule')
+                ]);
+                
+                setVetData(profileRes.data);
+                setEditData(profileRes.data);
+                setImagePreview(profileRes.data.imageurl || profileIcon);
+                setSchedules(scheduleRes.data);
 
-                setVetData(combinedData);
-                setEditData(combinedData);
-                setImagePreview(combinedData.imageurl || profileIcon);
             } catch (error) {
-                console.error("Erro ao buscar dados do veterinário", error);
+                toast.error("Erro ao buscar dados do perfil ou horários.");
+                console.error("Erro ao buscar dados:", error);
             } finally {
                 setLoading(false);
+                setLoadingSchedules(false);
             }
         }
     }, [user]);
@@ -85,13 +96,13 @@ const VetPerfil = () => {
                 uploadFormData.append('file', imageFile);
                 await api.post(`/upload/veterinary/${vetData.id}`, uploadFormData);
             }
-            alert('Perfil atualizado com sucesso!');
+            toast.success('Perfil atualizado com sucesso!');
             setIsEditing(false);
             setHasChanges(false);
             setImageFile(null);
             await fetchVetData();
         } catch (err) {
-            alert('Erro ao salvar as alterações.');
+            toast.error('Erro ao salvar as alterações.');
             console.error(err.response?.data || err);
         } finally {
             setIsSaving(false);
@@ -105,8 +116,8 @@ const VetPerfil = () => {
         setHasChanges(false);
     };
 
-    if (loading) return <div className="loading-container">Carregando perfil...</div>;
-    if (!vetData) return <div className="error-message">Não foi possível carregar os dados do perfil.</div>;
+    if (loading) return <div className="loading-container" style={{paddingTop: '150px', textAlign: 'center'}}>Carregando perfil...</div>;
+    if (!vetData) return <div className="error-message" style={{margin: '150px auto'}}>Não foi possível carregar os dados do perfil.</div>;
 
     return (
         <div className="profile-page-vet">
@@ -179,6 +190,7 @@ const VetPerfil = () => {
                         </div>
                     </div>
                 </form>
+                <ScheduleDisplay schedules={schedules} loading={loadingSchedules} />
             </div>
             <Footer />
         </div>

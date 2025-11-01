@@ -32,6 +32,7 @@ import AdminPerfil from '../pages/admin/Perfil/Perfil';
 import AdminChat from '../pages/admin/Chat/Chat';
 import ClinicServices from "../pages/admin/ClinicServices";
 import EmployeeList from "../pages/admin/EmployeeList";
+import WorkSchedules from "../pages/admin/WorkSchedules/WorkSchedules";
 
 // --- NOVO/MODIFICADO ---
 import EmployeeDashboard from "../pages/Employee/Dashboard"; // Import do dashboard do funcionário
@@ -94,6 +95,8 @@ export default function AppRoutes() {
       <Route path="/admin/perfil" element={<PrivateRoute requiredRole="ADMIN"><AdminPerfil /></PrivateRoute>} />
       <Route path="/admin/chat" element={<PrivateRoute requiredRole="ADMIN"><AdminChat /></PrivateRoute>} />
       <Route path="/admin/services" element={<PrivateRoute requiredRole="ADMIN"><ClinicServices /></PrivateRoute>} />
+      <Route path="/admin/schedules" element={<PrivateRoute requiredRole="ADMIN"><WorkSchedules /></PrivateRoute>} /> {/* <-- NOVA ROTA */}
+
 
       {/* === Rota do Funcionário (EMPLOYEE) - CORRIGIDA E COMPLETA === */}
       <Route path="/employee/dashboard" element={<PrivateRoute requiredRole="EMPLOYEE"><EmployeeDashboard /></PrivateRoute>} />

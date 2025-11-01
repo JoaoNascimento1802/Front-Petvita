@@ -5,7 +5,7 @@ import api from '../../../services/api';
 import HeaderComCadastro from '../../../components/Header_com_cadastro';
 import Footer from '../../../components/Footer';
 import { toast } from 'react-toastify';
-import './css/styles.css'; // <-- ADICIONE ESTA LINHA
+import './css/styles.css';
 
 const ScheduleAppointment = () => {
     const { user, loading: authLoading } = useAuth();
@@ -16,7 +16,11 @@ const ScheduleAppointment = () => {
     const [allVets, setAllVets] = useState([]);
     const [allEmployees, setAllEmployees] = useState([]);
     const [filteredProfessionals, setFilteredProfessionals] = useState([]);
-    const [availableTimes, setAvailableTimes] = useState([]);
+    
+    // Estados de horários separados para clareza
+    const [vetAvailableTimes, setVetAvailableTimes] = useState([]);
+    const [employeeAvailableTimes, setEmployeeAvailableTimes] = useState([]);
+    
     const [clinicServices, setClinicServices] = useState([]);
     const [formData, setFormData] = useState({
         petId: '',
@@ -41,7 +45,7 @@ const ScheduleAppointment = () => {
                         api.get('/api/public/services'),
                         api.get('/api/employee/all')
                     ]);
-          
+                    
                     setPets(petsRes.data || []);
                     setAllVets(vetsRes.data || []);
                     setClinicServices(servicesRes.data || []);
@@ -59,25 +63,48 @@ const ScheduleAppointment = () => {
         fetchData();
     }, [user, authLoading]);
 
-    const fetchAvailableTimes = useCallback(async () => {
+    // Busca horários para VETERINÁRIOS (lógica existente)
+    const fetchVetAvailableTimes = useCallback(async () => {
         if (formData.professionalId && formData.consultationdate && appointmentType === 'medical') {
             try {
                 const response = await api.get(`/veterinary/${formData.professionalId}/available-slots`, {
                     params: { date: formData.consultationdate }
                 });
- 
                 const formattedTimes = response.data.map(time => time.substring(0, 5));
-                setAvailableTimes(formattedTimes || []);
+                setVetAvailableTimes(formattedTimes || []);
             } catch (error) {
-                console.error("Erro ao buscar horários", error);
-                setAvailableTimes([]);
+                console.error("Erro ao buscar horários do veterinário", error);
+                setVetAvailableTimes([]);
+            }
+        }
+    }, [formData.professionalId, formData.consultationdate, appointmentType]);
+
+    // --- NOVA LÓGICA ---
+    // Busca horários para FUNCIONÁRIOS
+    const fetchEmployeeAvailableTimes = useCallback(async () => {
+        if (formData.professionalId && formData.consultationdate && appointmentType === 'service') {
+            try {
+                // Chama o novo endpoint do backend
+                const response = await api.get(`/api/service-schedules/employee/${formData.professionalId}/available-slots`, {
+                    params: { date: formData.consultationdate }
+                });
+                const formattedTimes = response.data.map(time => time.substring(0, 5));
+                setEmployeeAvailableTimes(formattedTimes || []);
+            } catch (error) {
+                console.error("Erro ao buscar horários do funcionário", error);
+                setEmployeeAvailableTimes([]);
             }
         }
     }, [formData.professionalId, formData.consultationdate, appointmentType]);
 
     useEffect(() => {
-        fetchAvailableTimes();
-    }, [fetchAvailableTimes]);
+        if (appointmentType === 'medical') {
+            fetchVetAvailableTimes();
+        } else if (appointmentType === 'service') {
+            fetchEmployeeAvailableTimes();
+        }
+    }, [fetchVetAvailableTimes, fetchEmployeeAvailableTimes, appointmentType]);
+    // --- FIM DA NOVA LÓGICA ---
 
     const handleTypeSelect = (type) => {
         setAppointmentType(type);
@@ -102,7 +129,8 @@ const ScheduleAppointment = () => {
                 setFilteredProfessionals([]);
             }
             updatedFormData.professionalId = '';
-            setAvailableTimes([]);
+            setVetAvailableTimes([]);
+            setEmployeeAvailableTimes([]); // Limpa horários de funcionário também
         }
 
         if (name === 'professionalId' || name === 'consultationdate') {
@@ -138,14 +166,14 @@ const ScheduleAppointment = () => {
                 clinicServiceId: parseInt(formData.clinicServiceId),
                 scheduleDate: formData.consultationdate,
                 scheduleTime: formData.consultationtime,
-                observations: formData.reason,
+                observations: formData.reason, // Observação do cliente vai no campo 'reason'
             };
         }
 
         try {
             await api.post(endpoint, payload);
             toast.success(`Agendamento de ${appointmentType === 'medical' ? 'consulta' : 'serviço'} solicitado com sucesso!`);
-            navigate(appointmentType === 'medical' ? '/consultas' : '/');
+            navigate(appointmentType === 'medical' ? '/consultas' : '/'); // Redireciona para /consultas ou / (home)
         } catch (error) {
             const errorMsg = error.response?.data?.message || "Erro ao agendar.";
             toast.error(errorMsg);
@@ -157,9 +185,10 @@ const ScheduleAppointment = () => {
         : [];
 
     if (authLoading || loading) {
-        return <p style={{ paddingTop: '150px', textAlign: 'center' }}>A carregar...</p>;
+        return <p style={{ paddingTop: '150px', textAlign: 'center' }}>Carregando...</p>;
     }
 
+    // --- CORREÇÃO NO JSX (PARTE DE SELEÇÃO DE HORA) ---
     return (
         <div className="add-pet-page">
             <HeaderComCadastro />
@@ -173,7 +202,7 @@ const ScheduleAppointment = () => {
                     
                     {!appointmentType ? (
                         <div className="type-selection">
-                             <button onClick={() => handleTypeSelect('medical')}>
+                            <button onClick={() => handleTypeSelect('medical')}>
                                 <div className="type-icon">🩺</div>
                                 <div>
                                     <span>Consultas Médicas</span>
@@ -234,7 +263,10 @@ const ScheduleAppointment = () => {
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="consultationtime">Hora</label>
-                                     {appointmentType === 'medical' ? (
+                                    
+                                    {/* --- CORREÇÃO APLICADA AQUI --- */}
+                                    {appointmentType === 'medical' ? (
+                                        // Lógica para Veterinário (que já funcionava)
                                         <select 
                                             id="consultationtime" 
                                             name="consultationtime" 
@@ -244,18 +276,34 @@ const ScheduleAppointment = () => {
                                             disabled={!formData.professionalId || !formData.consultationdate}
                                         >
                                             <option value="">Selecione um horário</option>
-                                            {availableTimes.length > 0 ? (
-                                                availableTimes.map(time => <option key={time} value={time}>{time}</option>)
+                                            {vetAvailableTimes.length > 0 ? (
+                                                vetAvailableTimes.map(time => <option key={time} value={time}>{time}</option>)
                                             ) : (
                                                 <option disabled>Nenhum horário disponível</option>
                                             )}
                                         </select>
-                                     ) : (
-                                        <input type="time" id="consultationtime" name="consultationtime" value={formData.consultationtime} onChange={handleChange} required disabled={!formData.professionalId || !formData.consultationdate} />
-                                     )}
+                                    ) : (
+                                        // Lógica NOVA para Funcionário (substituindo o input de time)
+                                        <select 
+                                            id="consultationtime" 
+                                            name="consultationtime" 
+                                            value={formData.consultationtime} 
+                                            onChange={handleChange} 
+                                            required 
+                                            disabled={!formData.professionalId || !formData.consultationdate}
+                                        >
+                                            <option value="">Selecione um horário</option>
+                                            {employeeAvailableTimes.length > 0 ? (
+                                                employeeAvailableTimes.map(time => <option key={time} value={time}>{time}</option>)
+                                            ) : (
+                                                <option disabled>Nenhum horário disponível</option>
+                                            )}
+                                        </select>
+                                    )}
+                                    {/* --- FIM DA CORREÇÃO --- */}
                                 </div>
                             </div>
-  
+ 
                             <div className="form-group">
                                 <label htmlFor="reason">Motivo/Observação (mín. 5 caracteres)</label>
                                 <textarea id="reason" name="reason" value={formData.reason} onChange={handleChange} rows="3" required minLength="5"></textarea>

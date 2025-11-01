@@ -63,11 +63,12 @@ const HeaderAdmin = () => {
                 <NavLink to="/admin/funcionarios" className="nav_link">Funcionários</NavLink>
                 <NavLink to="/admin/pacientes" className="nav_link">Pacientes</NavLink>
                 <NavLink to="/admin/services" className="nav_link">Serviços</NavLink>
+                {/* --- LINK ADICIONADO AQUI --- */}
+                <NavLink to="/admin/schedules" className="nav_link">Horários</NavLink>
                 <NavLink to="/admin/relatorios" className="nav_link">Relatórios</NavLink>
             </nav>
 
             <div className="icons-container">
-                {/* Ícone de Chat adicionado para acesso rápido */}
                 <NavLink to="/admin/chat" className="header-icon" title="Chat"><BsChatDots size={26} /></NavLink>
                 
                 <div className="notification-icon-wrapper" ref={notificationRef}>
